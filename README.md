@@ -24,7 +24,16 @@ TypeScript 会编译为可读, 简洁的 JavaScript. 这使得 TypeScript 可以
 
 - 入门指南
  - [快速上手 TypeScript](入门指南/快速上手.md)
+ - [TypeScript 特性举例](入门指南/特性举例.md)
  - 使用 JavaScript 类库
  - 开发环境
 - 最佳实践
 - 相关资源
+
+## 是否应该使用 TypeScript?
+
+关注 TypeScript 的同学里, 有一部分是对 Web 开发感兴趣, 但并没有 JavaScript 编程经验, 甚至没有其他语言编程经验的同学. 我并不建议这部分同学现在就使用 TypeScript, 如果是团队中打算使用 TypeScript, 个人建议应至少有一个精通 JavaScript 的成员.
+
+还有一部分是对 Web 前端感兴趣的后端工程师, 尤其是使用 C# 的工程师, 但即便拥有较多的编程经验, 依旧建议先熟悉原生 JavaScript, 再进行 TypeScript 的学习和开发.
+
+我认为 TypeScript 并不能单纯地作为一门新语言来理解. **TypeScript 是 JavaScript 的超集, 而其中的 "Type" 是 TypeScript 为 JavaScript 打造的工具.** 要用好这一门工具, 必须先理解这门工具服务的语言.
