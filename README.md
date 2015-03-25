@@ -26,7 +26,7 @@ TypeScript 会编译为可读, 简洁的 JavaScript. 这使得 TypeScript 可以
  - [快速上手 TypeScript](入门指南/快速上手.md)
  - [TypeScript 特性举例](入门指南/特性举例.md)
  - [在 TypeScript 中使用 JavaScript 类库](入门指南/使用JS类库.md)
- - 开发环境
+ - [开发环境](入门指南/开发环境.md)
 - 最佳实践
 - 相关资源
 
