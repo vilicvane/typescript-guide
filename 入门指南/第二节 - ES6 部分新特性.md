@@ -23,5 +23,15 @@ console.log('var:', i);
 
 `const` 的作用域和 `let` 一致, 用于声明常量.
 
-
 ## for...of 循环
+
+用于遍历数组中的元素.
+
+```typescript
+var arr = [1, 2, 3];
+
+for (let n of arr) {
+    console.log(n);
+}
+```
+
