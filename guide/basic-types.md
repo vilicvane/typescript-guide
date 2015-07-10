@@ -74,6 +74,4 @@ switch (currentState) {
 
 ---
 
-<div style="position: absolute;">[< 目录](README.md)</div>
-
-<div style="text-align: right;">[函数 >](functions.md)</div>
+<p align="right">&lt; [目录](README.md) | [函数](functions.md) &gt;</p>

@@ -108,6 +108,4 @@ map['Wat'] = {
 
 ---
 
-<div style="position: absolute;">[< 函数](functions.md)</div>
-
-<!-- <div style="text-align: right;">[ >](.md)</div> -->
+<p align="right">&lt; [函数](functions.md)</p>
