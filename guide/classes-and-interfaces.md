@@ -108,4 +108,4 @@ map['Wat'] = {
 
 ---
 
-<p align="right">&lt; [函数](functions.md)</p>
+&lt; [函数](functions.md)

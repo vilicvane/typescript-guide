@@ -63,4 +63,4 @@ function foo(str?: string): any {
 
 ---
 
-<p align="right">&lt; [基本类型](basic-types.md) | [类与接口](classes-and-interfaces.md) &gt;</p>
+&lt; [基本类型](basic-types.md) | [类与接口](classes-and-interfaces.md) &gt;

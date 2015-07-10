@@ -74,4 +74,4 @@ switch (currentState) {
 
 ---
 
-<p align="right">&lt; [目录](./README.md) | [函数](./functions.md) &gt;</p>
+&lt; [目录](README.md) | [函数](functions.md) &gt;
