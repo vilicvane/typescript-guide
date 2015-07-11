@@ -46,10 +46,10 @@ var arrB: Array<string> = ['thank you very much'];
 
 ```ts
 enum State {
-    created,
-    started,
-    ended,
-    disposed
+    created, // 0
+    started, // 1
+    ended, // 2
+    disposed // 3
 }
 
 var currentState = State.created;
@@ -70,7 +70,35 @@ switch (currentState) {
 }
 ```
 
-更多用法请参考 [枚举](features/enum.md).
+枚举类型的值默认从 0 开始, 但可以为其指定具体的值:
+
+```ts
+enum ErrorCode {
+    accessDenied = 1000,
+    incorrectPassword, // 1001
+    noSuchUser // 1002
+    
+    databaseError = 2000,
+    queryFailed, // 2001
+    insertionFailed // 2002
+}
+```
+
+某些情况还可以结合位运算来标记功能开关:
+
+```ts
+enum Options {
+    featureOne = 1,
+    featureTwo = 1 << 1,
+    featureThree = 1 << 2
+}
+
+var enabledOptions = Options.featureOne | Options.featureTwo;
+
+if (enabledOptions & Options.featureOne) {
+    console.log('do feature one');
+}
+```
 
 ---
 

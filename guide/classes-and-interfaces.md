@@ -108,4 +108,4 @@ map['Wat'] = {
 
 ---
 
-&lt; [函数](functions.md)
+&lt; [函数](functions.md) | [模块](modules.md) &gt;
