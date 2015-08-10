@@ -5,15 +5,61 @@
 ```ts
 class Foo {
     name: string;
-    private age: number;
+	
+    private _age: number;
     
     constructor(name: string, age?: number) {
         this.name = name;
-        this.age = age;
+        this._age = age;
     }
     
-    askAge(): number {
-        return this.age;
+    // getter
+    get age(): number {
+        return this._age;
+    }
+    
+    // setter
+    set age(value: number) {
+        this._age = value;
+    }
+    
+    getAge(): number {
+        return this._age;
+    }
+    
+    static biu(): void {
+        
+    }
+}
+
+// 调用静态方法
+Foo.biu();
+
+var foo = new Foo('Pia', 99);
+
+// 调用成员函数
+foo.getAge();
+```
+
+### 继承
+
+```ts
+class Bar extends Foo {
+    region: string;
+    
+    constructor(name: string, age?: number, region?: string) {
+        super(name, age);
+        this.region = region;
+    }
+    
+    // 覆盖父类方法.
+    getAge(): number {
+        return 0;
+    }
+    
+    getGreeting(): string {
+        // 使用 super 访问父类 getAge 方法.
+        return 'Hi, my name is ' + this.name + ', and I am ' + super.getAge() + ' years old.';
     }
 }
 ```
