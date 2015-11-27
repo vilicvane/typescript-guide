@@ -1,6 +1,6 @@
 # TypeScript 新增特性一览
 
-由 [vilicvane](https://github.com/vilic) 译自 <https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript>
+由 [vilicvane](https://github.com/vilic) 译自 [TypeScript Wiki](https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript).
 
 ## TypeScript 1.8 (尚未正式发布)
 
