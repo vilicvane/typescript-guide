@@ -1019,11 +1019,14 @@ TypeScript 编译器在需要的时候会输出一些像 `__extends` 这样的�
 
 `--inlineSourceMap` 将内嵌源文件映射到 `.js` 文件, 而不是在单独的 `.js.map` 文件中. `--inlineSources` 允许进一步将 `.ts` 文件内容包含到输出文件中.
 
-# TypeScript 1.4
+## TypeScript 1.4
 
-## Union types
-### Overview
-Union types are a powerful way to express a value that can be one of several types. For example, you might have an API for running a program that takes a commandline as either a `string`, a `string[]` or a function that returns a `string`. You can now write:
+### 联合类型
+
+#### 概览
+
+联合类型是描述一个可能是几个类型之一的值的有效方式. 举例来说, 你可能会有一个 API 用于执行一个 `commandline` 为 `string`, `string[]` 或者是返回值为 `string` 的函数的程序. 现在可以这样写:
+
 ```ts
 interface RunOptions {
    program: string;
@@ -1031,22 +1034,25 @@ interface RunOptions {
 }
 ```
 
-Assignment to union types works very intuitively -- anything you could assign to one of the union type's members is assignable to the union:
+对联合类型的赋值非常直观 -- 任何可以赋值给联合类型中任意一个类型的值都可以赋值给这个联合类型:
+
 ```ts
 var opts: RunOptions = /* ... */;
-opts.commandline = '-hello world'; // OK
-opts.commandline = ['-hello', 'world']; // OK
-opts.commandline = [42]; // Error, number is not string or string[]
+opts.commandline = '-hello world'; // 没问题
+opts.commandline = ['-hello', 'world']; // 没问题
+opts.commandline = [42]; // 错误, number 不是 string 或 string[]
 ```
 
-When reading from a union type, you can see any properties that are shared by them:
+当从联合类型中读取时, 你可以看到联合类型中各类型共有的属性:
+
 ```ts
-if(opts.length === 0) { // OK, string and string[] both have 'length' property
+if(opts.length === 0) { // 没问题, string 和 string[] 都有 'length' 属性
   console.log("it's empty");
 }
 ```
 
-Using Type Guards, you can easily work with a variable of a union type:
+使用类型收窄, 你可以方便的使用具有联合类型的变量:
+
 ```ts
 function formatCommandline(c: string|string[]) {
     if(typeof c === 'string') {
@@ -1057,118 +1063,138 @@ function formatCommandline(c: string|string[]) {
 }
 ```
 
-### Stricter Generics
-With union types able to represent a wide range of type scenarios, we've decided to improve the strictness of certain generic calls. Previously, code like this would (surprisingly) compile without error:
+#### 更严格的泛型
+
+结合联合类型可以表示很多种类型场景, 我们决定让某些泛型调用更加严格. 之前, 以下的代码能出人意料地无错通过编译:
+
 ```ts
 function equal<T>(lhs: T, rhs: T): boolean {
   return lhs === rhs;
 }
 
-// Previously: No error
-// New behavior: Error, no best common type between 'string' and 'number'
+// 过去: 无错误
+// 现在: 错误, 'string' 和 'number' 间没有最佳共有类型
 var e = equal(42, 'hello');
 ```
-With union types, you can now specify the desired behavior at both the function declaration site and the call site:
-```ts
-// 'choose' function where types must match
-function choose1<T>(a: T, b: T): T { return Math.random() > 0.5 ? a : b }
-var a = choose1('hello', 42); // Error
-var b = choose1<string|number>('hello', 42); // OK
 
-// 'choose' function where types need not match
+而通过联合类型, 你现在可以在函数声明或者调用的时候指明想要的行为:
+
+```ts
+// 'choose' 函数的参数类型必须相同
+function choose1<T>(a: T, b: T): T { return Math.random() > 0.5 ? a : b }
+var a = choose1('hello', 42); // 错误
+var b = choose1<string|number>('hello', 42); // 正确
+
+// 'choose' 函数的参数类型不需要相同
 function choose2<T, U>(a: T, b: U): T|U { return Math.random() > 0.5 ? a : b }
-var c = choose2('bar', 'foo'); // OK, c: string
-var d = choose2('hello', 42); // OK, d: string|number
+var c = choose2('bar', 'foo'); // 正确, c: string
+var d = choose2('hello', 42); // 正确, d: string|number
 ```
 
-### Better Type Inference
-Union types also allow for better type inference in arrays and other places where you might have multiple kinds of values in a collection:
+#### 更好的类型接口
+
+联合类型也允许了数组或者其他地方有更好的类型接口, 以便一个集合中可能有多重类型.
+
 ```ts
 var x = [1, 'hello']; // x: Array<string|number>
-x[0] = 'world'; // OK
-x[0] = false; // Error, boolean is not string or number
+x[0] = 'world'; // 正确
+x[0] = false; // 错误, boolean 不是 string 或 number
 ```
 
-## `let` declarations
-In JavaScript, `var` declarations are "hoisted" to the top of their enclosing scope. This can result in confusing bugs:
+### `let` 声明
+
+在 JavaScript 中, `var` 声明会被 "提升" 到它们所在的作用域. 这可能会导致一些令人疑惑的问题:
+
 ```ts
-console.log(x); // meant to write 'y' here
-/* later in the same block */
+console.log(x); // 本意是在这里写 'y'
+/* 当前代码块靠后的位置 */
 var x = 'hello';
 ```
 
-The new ES6 keyword `let`, now supported in TypeScript, declares a variable with more intuitive "block" semantics. A `let` variable can only be referred to after its declaration, and is scoped to the syntactic block where it is defined:
+ES6 的关键字 `let` 现在在 TypeScript 中得到支持, 声明变量获得了更直观的块级语义. 一个 `let` 变量只能在它声明之后被引用, 其作用域被限定于它被声明的句法块:
+
 ```ts
 if(foo) {
-    console.log(x); // Error, cannot refer to x before its declaration
+    console.log(x); // 错误, 在声明前不能引用 x
     let x = 'hello';
 } else {
-    console.log(x); // Error, x is not declared in this block
+    console.log(x); // 错误, x 在当前块中没有声明
 }
 ```
-`let` is only available when targeting ECMAScript 6 (`--target ES6`).
 
-## `const` declarations
-The other new ES6 declaration type supported in TypeScript is `const`. A `const` variable may not be assigned to, and must be initialized where it is declared. This is useful for declarations where you don't want to change the value after its initialization:
+`let` 仅在编译到 ECMAScript 6 时被支持 (`--target ES6`).
+
+### `const` 声明
+
+另外一种在 TypeScript 中被支持的新的 ES6 声明类型是 `const`. 一个 `const` 变量不能被赋值, 并且在声明的时候必须被初始化. 这可以用在你声明和初始化后不希望值被改变时:
+
 ```ts
 const halfPi = Math.PI / 2;
-halfPi = 2; // Error, can't assign to a `const`
+halfPi = 2; // 错误, 不能赋值给一个 `const`
 ```
 
-`const` is only available when targeting ECMAScript 6 (`--target ES6`).
+`const` 仅在编译到 ECMAScript 6 时被支持 (`--target ES6`).
 
-## Template strings
-TypeScript now supports ES6 template strings. These are an easy way to embed arbitrary expressions in strings:
+## 模板字符串
+
+TypeScript 现在支持 ES6 模板字符串. 现在可以方便地在字符串中嵌入任何表达式:
 
 ```ts
 var name = "TypeScript";
 var greeting  = `Hello, ${name}! Your name has ${name.length} characters`;
 ```
 
-When compiling to pre-ES6 targets, the string is decomposed:
-```js
+当编译到 ES6 以前的版本时, 字符串会被分解为:
+
+```ts
 var name = "TypeScript!";
 var greeting = "Hello, " + name + "! Your name has " + name.length + " characters";
 ```
 
-## Type Guards
-A common pattern in JavaScript is to use `typeof` or `instanceof` to examine the type of an expression at runtime. TypeScript now understands these conditions and will change type inference accordingly when used in an `if` block.
+### 类型收窄
 
-Using `typeof` to test a variable:
+在 JavaScript 中常常用 `typeof` 或者 `instanceof` 在运行时检查一个表达式的类型. TypeScript 现在理解这些条件, 并且在 `if` 语句中会据此改变类型接口.
+
+使用 `typeof` 来检查一个变量:
+
 ```ts
 var x: any = /* ... */;
 if(typeof x === 'string') {
-    console.log(x.subtr(1)); // Error, 'subtr' does not exist on 'string'
+    console.log(x.subtr(1)); // 错误, 'subtr' 在 'string' 上不存在
 }
-// x is still any here
-x.unknown(); // OK
+// 这里 x 的类型依然是 any
+x.unknown(); // 正确
 ```
 
-Using `typeof` with union types and `else`:
+与联合类型和 `else` 一起使用 `typeof`:
+
 ```ts
 var x: string|HTMLElement = /* ... */;
 if(typeof x === 'string') {
-    // x is string here, as shown above
+    // x 如上所述是一个 string
 } else {
-    // x is HTMLElement here
+    // x 在这里是 HTMLElement
     console.log(x.innerHTML);
 }
 ```
 
-Using `instanceof` with classes and union types:
+与类和联合类型一起使用 `instanceof`:
+
 ```ts
 class Dog { woof() { } }
 class Cat { meow() { } }
 var pet: Dog|Cat = /* ... */;
 if(pet instanceof Dog) {
-    pet.woof(); // OK
+    pet.woof(); // 正确
 } else {
-    pet.woof(); // Error
+    pet.woof(); // 错误
 }
 ```
 
-## Type Aliases
-You can now define an *alias* for a type using the `type` keyword:
+### 类型别名
+
+现在你可以使用 `type` 关键字为类型定义一个_别名_:
+
 ```ts
 type PrimitiveArray = Array<string|number|boolean>;
 type MyNumber = number;
@@ -1176,21 +1202,25 @@ type NgScope = ng.IScope;
 type Callback = () => void;
 ```
 
-Type aliases are exactly the same as their original types; they are simply alternative names.
+类型别名和它们原来的类型完全相同; 它们仅仅是另一种表述的名称.
 
-## `const enum` (completely inlined enums)
-Enums are very useful, but some programs don't actually need the generated code and would benefit from simply inlining all instances of enum members with their numeric equivalents. The new `const enum` declaration works just like a regular `enum` for type safety, but erases completely at compile time.
+### `const enum` (完全内联的枚举)
+
+枚举非常有用, 但有的程序可能并不需要生成的代码, 而简单地将枚举成员的数字值内联能够给这些程序带来一定好处. 新的 `const enum` 声明在类型安全上和 `enum` 一致, 但是编译后会被完全抹去.
 
 ```ts
 const enum Suit { Clubs, Diamonds, Hearts, Spades }
 var d = Suit.Diamonds;
 ```
-Compiles to exactly:
+
+编译为:
+
 ```js
 var d = 1;
 ```
 
-TypeScript will also now compute enum values when possible:
+如果可能 TypeScript 现在会计算枚举的值:
+
 ```ts
 enum MyFlags {
   None = 0,
@@ -1199,28 +1229,31 @@ enum MyFlags {
   Awesome = 4,
   Best = Neat | Cool | Awesome
 }
-var b = MyFlags.Best; // emits var b = 7;
+var b = MyFlags.Best; // 输出 var b = 7;
 ```
 
-## `--noEmitOnError` commandline option
-The default behavior for the TypeScript compiler is to still emit .js files if there were type errors (for example, an attempt to assign a `string` to a `number`). This can be undesirable on build servers or other scenarios where only output from a "clean" build is desired. The new flag `noEmitOnError` prevents the compiler from emitting .js code if there were any errors.
+### `--noEmitOnError` 命令行选项
 
-This is now the default for MSBuild projects; this allows MSBuild incremental build to work as expected, as outputs are only generated on clean builds.
+TypeScript 编译器的默认行为会在出现类型错误 (比如, 尝试赋值一个 `string` 给 `number`) 时依然输出 .js 文件. 在构建服务器或者其他只希望有 "干净" 版本的场景可能并不是期望的结果. 新的 `noEmitOnError` 标记会使编译器在有任何错误时不输出 .js 代码.
 
-## AMD Module names
-By default AMD modules are generated anonymous. This can lead to problems when other tools are used to process the resulting modules like a bundlers (e.g. r.js). 
+对于 MSBuild 的项目这是目前的默认设定; 这使 MSBuild 的增量编译变得可行, 输出仅在代码没有问题时产生.
 
-The new `amd-module name` tag allows passing an optional module name to the compiler:
+### AMD 模块名称
 
-```TypeScript
+AMD 模块默认生成是匿名的. 对于一些像打包工具这样的处理输出模块的工具会带来一些问题 (比如 r.js).
+
+新的 `amd-module name` 标签允许传入一个可选的模块名称给编译器:
+
+```ts
 //// [amdModule.ts]
 ///<amd-module name='NamedModule'/>
 export class C {
 }
 ```
-Will result in assigning the name `NamedModule` to the module as part of calling the AMD `define`:
 
-```JavaScript
+这会在调用 AMD 的 `define` 方法时传入名称 `NamedModule`:
+
+```ts
 //// [amdModule.js]
 define("NamedModule", ["require", "exports"], function (require, exports) {
     var C = (function () {
@@ -1232,9 +1265,11 @@ define("NamedModule", ["require", "exports"], function (require, exports) {
 });
 ```
 
-# TypeScript 1.3
-## Protected
-The new `protected` modifier in classes works like it does in familiar languages like C++, C#, and Java. A `protected` member of a class is visible only inside subclasses of the class in which it is declared:
+## TypeScript 1.3
+
+### 受保护成员
+
+在类中新的 `protected` 标示符就像它在其他一些像 C++, C# 与 Java 这样的常见语言中的功能一致. 一个 `protected` (受保护的) 的成员仅在子类或者声明它的类中可见:
 
 ```ts
 class Thing {
@@ -1243,52 +1278,61 @@ class Thing {
 
 class MyThing extends Thing {
   public myMethod() {
-    // OK, can access protected member from subclass
+    // 正确, 可以在子类中访问受保护成员
     this.doSomething();
   }
 }
 var t = new MyThing();
-t.doSomething(); // Error, cannot call protected member from outside class
+t.doSomething(); // 错误, 不能在类外调用受保护成员
 ```
 
-## Tuple types
-Tuple types express an array where the type of certain elements is known, but need not be the same. For example, you may want to represent an array with a `string` at position 0 and a `number` at position 1:
+### 元组类型
+
+元组类型可以表示一个数组中部分元素的类型是已知, 但不一定相同的情况. 举例来说, 你可能希望描述一个数组, 在下标 0 处为 `string`, 在 1 处为 `number`:
+
 ```ts
-// Declare a tuple type
+// 声明一个元组类型
 var x: [string, number];
-// Initialize it
-x = ['hello', 10]; // OK
-// Initialize it incorrectly
-x = [10, 'hello']; // Error
-```
-When accessing an element with a known index, the correct type is retrieved:
-```ts
-console.log(x[0].substr(1)); // OK
-console.log(x[1].substr(1)); // Error, 'number' does not have 'substr'
-```
-Note that in TypeScript 1.4, when accessing an element outside the set of known indices, a union type is used instead:
-```ts
-x[3] = 'world'; // OK
-console.log(x[5].toString()); // OK, 'string' and 'number' both have toString
-x[6] = true; // Error, boolean isn't number or string
+// 初始化
+x = ['hello', 10]; // 正确
+// 错误的初始化
+x = [10, 'hello']; // 错误
 ```
 
-# TypeScript 1.1
-## Performance Improvements
-The 1.1 compiler is typically around 4x faster than any previous release. See [this blog post for some impressive charts.](http://blogs.msdn.com/b/typescript/archive/2014/10/06/announcing-typescript-1-1-ctp.aspx)
+当使用已知的下标访问某个元素时, 能够获得正确的类型:
 
-## Better Module Visibility Rules
-TypeScript now only strictly enforces the visibility of types in modules if the `--declaration` flag is provided. This is very useful for Angular scenarios, for example:
+```ts
+console.log(x[0].substr(1)); // 正确
+console.log(x[1].substr(1)); // 错误, 'number' 类型没有 'substr' 属性
+```
+
+注意在 TypeScript 1.4 中, 当访问某个下标不在已知范围内的元素时, 获得的是联合类型:
+
+```ts
+x[3] = 'world'; // 正确
+console.log(x[5].toString()); // 正确, 'string' 和 'number' 都有 toString 方法
+x[6] = true; // 错误, boolean 不是 number 或 string
+```
+
+## TypeScript 1.1
+
+### 性能优化
+
+1.1 版编译器大体比之前任何版本快 4 倍. 查看 [这篇文章里令人印象深刻的对比](http://blogs.msdn.com/b/typescript/archive/2014/10/06/announcing-typescript-1-1-ctp.aspx).
+
+### 更好的模块可见规则
+
+TypeScript 现在仅在开启了 `--declaration` 标记时严格要求模块类型的可见性. 对于 Angular 的场景来说非常有用, 比如:
+
 ```ts
 module MyControllers {
   interface ZooScope extends ng.IScope {
     animals: Animal[];
   }
   export class ZooController {
-    // Used to be an error (cannot expose ZooScope), but now is only
-    // an error when trying to generate .d.ts files
+    // 过去是错误的 (无法暴露 ZooScope), 而现在仅在需要生成 .d.ts 文件时报错
     constructor(public $scope: ZooScope) { }
-    /* more code */
+    /* 更多代码 */
   }
 }
 ```
