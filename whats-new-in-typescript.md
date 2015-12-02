@@ -1,6 +1,6 @@
 # TypeScript 新增特性一览
 
-由 [vilicvane](https://github.com/vilic) 译自 [TypeScript Wiki](https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript).
+由 [vilicvane](https://github.com/vilic) 译自 [TypeScript Wiki](https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript/6534258ff7c52dc4d6578a3928cdabbc89370a4c).
 
 ## TypeScript 1.8 (尚未正式发布)
 
@@ -11,6 +11,10 @@
 通过传递 `--pretty` 命令行选项, TypeScript 会给出更丰富的输出, 包含错误发生的上下文.
 
 ![展示在 ConEmu 中美化之后的错误信息](https://raw.githubusercontent.com/wiki/Microsoft/TypeScript/images/new-in-typescript/pretty01.png)
+
+### `--project` (`-p`) 选项现在接受任意文件路径
+
+`--project` 命令行选项过去只接受包含了 `tsconfig.json` 文件的文件夹. 考虑到不同的构建场景, 应该允许 `--project` 指向任何兼容的 JSON 文件. 比如说, 一个用户可能会希望为 Node 5 编译 CommonJS 的 ES 2015, 为浏览器编译 AMD 的 ES5. 现在少了这项限制, 用户可以更容易地直接使用 `tsc` 管理不同的构建目标, 无需再通过一些奇怪的方式, 比如将多个 `tsconfig.json` 文件放在不同的目录中.
 
 ### 支持输出到 IPC 驱动的文件
 
@@ -34,7 +38,11 @@ tsc foo.ts --outFile /dev/stdout | pretty-js
 
 在使用 `--module amd` 或者 `--module system` 时指定 `--outFile` 将会合并编译的所有模块为一个包含了多个模块闭包的输出文件.
 
-## TypeScript 1.7 (尚未正式发布)
+### 新的编译器选项: `--allowSyntheticDefaultExports`
+
+指定 `--allowSyntheticDefaultExports` 则表示模块加载器会对于导入的 `.ts` 或 `.d.ts` 文件进行某种约定的默认引入. 我们会认为默认成员是导入模块的 `export=` 成员或者整个模块 (不应该出现这种情况). System 模块会默认开启该选项.
+
+## TypeScript 1.7
 
 ### 支持 `async`/`await` 编译到 ES6 (Node v4+)
 
@@ -236,7 +244,7 @@ f2({ x: 1, y: 1 });
 
 ### 装饰器 (decorators) 支持的编译目标版本增加 ES3
 
-装饰器现在可以编译到 ES3. TypeScript 1.7 在 `__decorate` 函数中移除了 ES5 中增加的 `reduceRight`. 相关改动也内联了对 `Object.getOwnPropertyDescriptor` 和 `Object.defineProperty` 的调用, 并向后兼容, 使 ES5 的输出可以消除前面提到的 `Object` 方法的重复<sup>\[1\]</sup>.
+装饰器现在可以编译到 ES3. TypeScript 1.7 在 `__decorate` 函数中移除了 ES5 中增加的 `reduceRight`. 相关改动也内联了对 `Object.getOwnPropertyDescriptor` 和 `Object.defineProperty` 的调用, 并向后兼容, 使 ES5 的输出可以消除前面提到的 `Object` 方法的重复<sup>[1]</sup>.
 
 ## TypeScript 1.6
 
