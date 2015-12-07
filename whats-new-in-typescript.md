@@ -1,6 +1,6 @@
 # TypeScript 新增特性一览
 
-由 [vilicvane](https://github.com/vilic) 译自 [TypeScript Wiki](https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript/6534258ff7c52dc4d6578a3928cdabbc89370a4c).
+由 [vilicvane](https://github.com/vilic) 译自 [TypeScript Wiki](https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript/94dcb82e324726c7732ab2cc0324eb835204545a).
 
 ## TypeScript 1.8 (尚未正式发布)
 
@@ -38,9 +38,9 @@ tsc foo.ts --outFile /dev/stdout | pretty-js
 
 在使用 `--module amd` 或者 `--module system` 时指定 `--outFile` 将会合并编译的所有模块为一个包含了多个模块闭包的输出文件.
 
-### 新的编译器选项: `--allowSyntheticDefaultExports`
+### 新的编译器选项: `--allowSyntheticDefaultImports`
 
-指定 `--allowSyntheticDefaultExports` 则表示模块加载器会对于导入的 `.ts` 或 `.d.ts` 文件进行某种约定的默认引入. 我们会认为默认成员是导入模块的 `export=` 成员或者整个模块 (不应该出现这种情况). System 模块会默认开启该选项.
+指定 `--allowSyntheticDefaultImports` 则表示模块加载器会对于导入的 `.ts` 或 `.d.ts` 文件进行某种约定的默认引入. 我们会认为默认成员是导入模块的 `export=` 成员或者整个模块 (不应该出现这种情况). System 模块会默认开启该选项.
 
 ## TypeScript 1.7
 
