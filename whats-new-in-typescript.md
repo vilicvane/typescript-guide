@@ -337,7 +337,7 @@ define("a", ["require", "exports", "lib/b"], function (require, exports, B) {
 
 像 SystemJS 这样的模块加载器将 CommonJS 模块做了包装并暴露为 `default` ES6 导入项. 这使得在 SystemJS 和 CommonJS 的实现由于不同加载器不同的模块导出方式不能共享定义.
 
-设置新的编译选项 `--allowSynthenticDefaultImports` 指明模块加载器会进行导入的 `.ts` 或 `.d.ts` 中未指定的某种类型的默认导入项构建. 编译器会由此推断存在一个 `default` 导出项和整个模块自己一致.
+设置新的编译选项 `--allowSyntheticDefaultImports` 指明模块加载器会进行导入的 `.ts` 或 `.d.ts` 中未指定的某种类型的默认导入项构建. 编译器会由此推断存在一个 `default` 导出项和整个模块自己一致.
 
 此选项在 System 模块默认开启.
 
@@ -569,10 +569,6 @@ TypeScript 1.8 允许在任何种类的项目中使用 `tsconfig.json` 文件.
 - 如果你添加了一个 `tsconfig.json` 文件, 不在其上下文中的 TypeScript 文件不会被编译.
 - Apache Cordova 应用依然有单个 `tsconfig.json` 文件的限制, 而这个文件必须在根目录或者 `scripts` 文件夹.
 - 多数项目类型中都没有 `tsconfig.json` 的模板.
-
-### 新的编译器选项: `--allowSyntheticDefaultImports`
-
-指定 `--allowSyntheticDefaultImports` 则表示模块加载器会对于导入的 `.ts` 或 `.d.ts` 文件进行某种约定的默认引入. 我们会认为默认成员是导入模块的 `export=` 成员或者整个模块 (不应该出现这种情况). System 模块会默认开启该选项.
 
 ## TypeScript 1.7
 
