@@ -31,16 +31,16 @@
 `--noEmitHelpers` | | 不在编译结果中生成自定义的像 `__extends` 的辅助函数.
 `--noImplicitAny` | | 在表达式或者声明包含隐式的 'any' 类型是报错.
 `--noLib` | | 不引入默认的库文件 (lib.d.ts).
-`--noResolve` | | Do not add triple-slash references or module import targets to the list of compiled files.
-`--skipDefaultLibCheck` | |
-`--out` | | DEPRECATED. Use `--outFile` instead.
-`--outDir` | | Redirect output structure to the directory.
-`--outFile` | | Concatenate and emit output to single file. The order of concatenation is determined by the list of files passed to the compiler on the command line along with triple-slash references and imports. See output file order documentation for more details.
-`--preserveConstEnums` | | Do not erase const enum declarations in generated code. See [const enums documentation](https://github.com/Microsoft/TypeScript/blob/master/doc/spec.md#94-constant-enum-declarations) for more details.
-`--pretty`<sup>[1]</sup> | | Stylize errors and messages using color and context.
-`--removeComments` | | Remove all comments except copy-right header comments beginning with `/!*`
-`--rootDir` | | Specifies the root directory of input files. Only use to control the output directory structure with `--outDir`.
-`--sourceMap` | | Generates corresponding '.map' file.
+`--noResolve` | | 在被编译的文件列表中不列出由三斜线引用的和导入的目标文件.
+`--skipDefaultLibCheck` | | 跳过默认库文件检查.
+`--out` | | 已弃用. 请使用 `--outFile` 代替.
+`--outDir` | | 将文件输出到指定文件夹.
+`--outFile` | | 将输出内容合并为单个文件. 合并的顺序由在命令行中传给编译器的列表与三斜线引用及导入决定. 查看输出文件顺序文档了解更多.
+`--preserveConstEnums` | | 在生成的代码中保留常量枚举声明. 查看[常量枚举文档](https://github.com/Microsoft/TypeScript/blob/master/doc/spec.md#94-constant-enum-declarations) 了解更多.
+`--pretty`<sup>[1]</sup> | | 使用颜色和上下文丰富报错和信息.
+`--removeComments` | | 移除除以 `/!*` 开头的版权头信息以外的所有注释.
+`--rootDir` | | 指定输入文件的根目录. 仅用于和 `--outDir` 一起控制输出文件的目录结构.
+`--sourceMap` | | 生成对应的 '.map' 文件.
 `--sourceRoot` | | Specifies the location where debugger should locate TypeScript files instead of source locations. Use this flag if the sources will be located at run-time in a different location than that at design-time. The location specified will be embedded in the sourceMap to direct the debugger where the source files where be located.
 `--stripInternal`<sup>[1]</sup> | | Do not emit declarations for code that has an `/** @internal */` JSDoc annotation.
 `--suppressExcessPropertyErrors`<sup>[1]</sup> | | Suppress excess property checks for object literals.
@@ -54,7 +54,7 @@
 `--allowJs` | | Allow JavaScript files to be compiled.
 `--noImplicitUseStrict` | | Do not emit `"use strict"` directives in module output
 
-<sup>[1]</sup> These options are experimental.
+<sup>[1]</sup> 这些选项是试验性的.
 
 ## Related
  - For tsconfig.json see [[tsconfig.json]]
