@@ -1,6 +1,6 @@
 # 编译选项
 
-由 [vilicvane](https://github.com/vilic) 译自 [TypeScript Wiki](https://github.com/Microsoft/TypeScript/wiki/Compiler-Options/0742c762821f91e0788dd60e1549829fa22774b2).
+由 [vilicvane](https://github.com/vilic) 译自 [TypeScript Wiki](https://github.com/Microsoft/TypeScript/wiki/Compiler-Options/294bc9d4c27f905cdf118376f9b0f172972757a9).
 
 选项 | 简写 | 描述
 -------|-----------|------------
@@ -17,7 +17,7 @@
 `--emitDecoratorMetadata`<sup>[1]</sup> | | 为被源码中被装饰的声明输出设计类型元数据. 见 [issue #2577](https://github.com/Microsoft/TypeScript/issues/2577) 了解详情.
 `--experimentalDecorators` | | 启用对 ES7 装饰器的试验性支持.
 `--inlineSourceMap` | | 将 source map 包含在输出文件中, 而不输出单独的文件.
-`--inlineSources` | | 将源代码和 source map 输出到同一个文件中. 需要 `--inlineSourceMap` 被启用.
+`--inlineSources` | | 将源代码和 source map 输出到同一个文件中. 需要 `--inlineSourceMap` 或 `--sourceMap` 被启用.
 `--isolatedModules` | | 对于未解析的文件无条件输出导入项.
 `--jsx` | | 支持 '.tsx' 文件中的 JSX: 'React' 或 'Preserve'. 参考 [JSX](https://github.com/Microsoft/TypeScript/wiki/JSX).
 `--reactNamespace` | | 指定使用 'react' 作为 JSX 输出设置时用于调用 `createElement` 和 `__spread` 的对象.
@@ -38,25 +38,24 @@
 `--outFile` | | 将输出内容合并为单个文件. 合并的顺序由在命令行中传给编译器的列表与三斜线引用及导入决定. 查看输出文件顺序文档了解更多.
 `--preserveConstEnums` | | 在生成的代码中保留常量枚举声明. 查看[常量枚举文档](https://github.com/Microsoft/TypeScript/blob/master/doc/spec.md#94-constant-enum-declarations) 了解更多.
 `--pretty`<sup>[1]</sup> | | 使用颜色和上下文丰富报错和信息.
-`--removeComments` | | 移除除以 `/!*` 开头的版权头信息以外的所有注释.
+`--removeComments` | | 移除除以 `/*!` 开头的版权头信息以外的所有注释.
 `--rootDir` | | 指定输入文件的根目录. 仅用于和 `--outDir` 一起控制输出文件的目录结构.
 `--sourceMap` | | 生成对应的 '.map' 文件.
-`--sourceRoot` | | Specifies the location where debugger should locate TypeScript files instead of source locations. Use this flag if the sources will be located at run-time in a different location than that at design-time. The location specified will be embedded in the sourceMap to direct the debugger where the source files where be located.
-`--stripInternal`<sup>[1]</sup> | | Do not emit declarations for code that has an `/** @internal */` JSDoc annotation.
-`--suppressExcessPropertyErrors`<sup>[1]</sup> | | Suppress excess property checks for object literals.
-`--suppressImplicitAnyIndexErrors` | | Suppress `--noImplicitAny` errors for indexing objects lacking index signatures. See [issue #1232](https://github.com/Microsoft/TypeScript/issues/1232#issuecomment-64510362) for more details.
-`--allowUnusedLabels` | | Do not report errors on unused labels.
-`--noImplicitReturns` | | Report error when not all code paths in function return a value.
-`--noFallthroughCasesInSwitch` | | Report errors for fallthrough cases in switch statement.
-`--allowUnreachableCode` | | Do not report errors on unreachable code.
-`--forceConsistentCasingInFileNames` | | Disallow inconsistently-cased references to the same file.
-`--allowSyntheticDefaultImports` | | Allow default imports from modules with no default export. This does not affect code emit, just typechecking.
-`--allowJs` | | Allow JavaScript files to be compiled.
-`--noImplicitUseStrict` | | Do not emit `"use strict"` directives in module output
+`--sourceRoot` | | 指定 debugger 定位 TypeScript 文件的位置 (而不是源文件地址). 当源文件在运行时与设计时在不同位置时可以使用此选项. 指定的位置将被嵌入 source map 来告知 debugger 去哪里寻找这些文件.
+`--stripInternal`<sup>[1]</sup> | | 不输出有 `/** @internal */` JSDoc 标注代码的声明.
+`--suppressExcessPropertyErrors`<sup>[1]</sup> | | 不检查对象字面量多余的属性.
+`--suppressImplicitAnyIndexErrors` | | 忽略没有索引签名对象的 `--noImplicitAny` 错误. 见 [issue #1232](https://github.com/Microsoft/TypeScript/issues/1232#issuecomment-64510362) 了解更多.
+`--allowUnusedLabels` | | 不对未使用的标签报错.
+`--noImplicitReturns` | | 当函数中有代码路径没有返回值时报错.
+`--noFallthroughCasesInSwitch` | | 对 switch 语句中贯穿的 case 报错.
+`--allowUnreachableCode` | | 不对无法到达的语句报错.
+`--forceConsistentCasingInFileNames` | | 禁止对同一个文件大小写不一致的引用.
+`--allowSyntheticDefaultImports` | | 允许对没有默认输出的模块进行默认导入. 这不会影响代码输出, 仅用于进行类型检查.
+`--allowJs` | | 允许编译 JavaScript 文件.
+`--noImplicitUseStrict` | | 在输出的模块中不增加 `"use strict"` 指令.
 
 <sup>[1]</sup> 这些选项是试验性的.
 
-## Related
- - For tsconfig.json see [[tsconfig.json]]
- - For Setting the compiler options in MSBuild projects see [[Setting Compiler Options in MSBuild projects]]
-
+## 相关信息
+ - 了解 tsconfig.json 见 [tsconfig.json](https://github.com/Microsoft/TypeScript/wiki/tsconfig.json)
+ - 了解在 MSBuild 中设置编译器选项见 [Setting Compiler Options in MSBuild projects](https://github.com/Microsoft/TypeScript/wiki/Setting-Compiler-Options-in-MSBuild-projects)
