@@ -30,6 +30,7 @@ VSCode 内置 TypeScript 支持, 并且通过 TypeScript Salsa 为 JavaScript �
         ]
     }
     ```
+
    在该配置模板的基础上, 在 `compilerOptions` 中新增一项 `target`, 值为 `"es5"`.
 3. 新建文件 `test.ts`, 输入以下内容并保存:
     ```ts
@@ -39,6 +40,7 @@ VSCode 内置 TypeScript 支持, 并且通过 TypeScript Salsa 为 JavaScript �
 
     test('Hello, VSCode!');
     ```
+
 4. 按下 `F1` 或 `Ctrl/Cmd+Shift+P`, 输入 `build`, 选中 "Tasks: Run Build Task". VSCode 将会提示 "No task runner configured", 点击 "Configure Task Runner" 进行配置. VSCode 打开自动生成的 `.vscode/tasks.json` 文件, 以便我们进行修改. 接下来将其替换为以下配置并保存:
     ```json
     {
@@ -50,6 +52,7 @@ VSCode 内置 TypeScript 支持, 并且通过 TypeScript Salsa 为 JavaScript �
         "problemMatcher": "$tsc"
     }
     ```
+
 5. 再次按上一步的方法执行构建任务, 或者也可以使用快捷键 `Ctrl/Cmd+Shift+B`. 如果一切顺利, 编译完成后项目目录下回出现编译后的 `test.js` 文件:
     ```js
     function test(str) {
