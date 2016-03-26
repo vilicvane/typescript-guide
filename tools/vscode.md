@@ -11,6 +11,7 @@ VSCode 内置 TypeScript 支持, 并且通过 TypeScript Salsa 为 JavaScript �
 
 1. 安装 [Node.js](https://nodejs.org).
 2. 通过 Node.js 自带的 `npm` 包管理工具安装 TypeScript 编译器 `tsc` (包名为 `typescript`) 及 TypeScript 声明管理工具 `tsd`.
+
     ```shell
     npm install --global typescript
     npm install --global tsd
@@ -20,6 +21,7 @@ VSCode 内置 TypeScript 支持, 并且通过 TypeScript Salsa 为 JavaScript �
 
 1. 新建项目文件夹 `ts-test` 并在 VSCode 中打开.
 2. 在文件夹根目录新建文件 `tsconfig.json`, 键入 `compilerOptions` 后, VSCode 会自动提示一个代码片段, 按 `Tab` 键将插入如下配置:
+
     ```json
     {
         "compilerOptions": {
@@ -33,6 +35,7 @@ VSCode 内置 TypeScript 支持, 并且通过 TypeScript Salsa 为 JavaScript �
 
    在该配置模板的基础上, 在 `compilerOptions` 中新增一项 `target`, 值为 `"es5"`.
 3. 新建文件 `test.ts`, 输入以下内容并保存:
+
     ```ts
     function test(str: string): void {
         console.log(str);
@@ -42,6 +45,7 @@ VSCode 内置 TypeScript 支持, 并且通过 TypeScript Salsa 为 JavaScript �
     ```
 
 4. 按下 `F1` 或 `Ctrl/Cmd+Shift+P`, 输入 `build`, 选中 "Tasks: Run Build Task". VSCode 将会提示 "No task runner configured", 点击 "Configure Task Runner" 进行配置. VSCode 打开自动生成的 `.vscode/tasks.json` 文件, 以便我们进行修改. 接下来将其替换为以下配置并保存:
+
     ```json
     {
         "version": "0.1.0",
@@ -54,6 +58,7 @@ VSCode 内置 TypeScript 支持, 并且通过 TypeScript Salsa 为 JavaScript �
     ```
 
 5. 再次按上一步的方法执行构建任务, 或者也可以使用快捷键 `Ctrl/Cmd+Shift+B`. 如果一切顺利, 编译完成后项目目录下回出现编译后的 `test.js` 文件:
+
     ```js
     function test(str) {
         console.log(str);
