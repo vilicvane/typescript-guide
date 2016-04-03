@@ -70,6 +70,38 @@ VSCode 内置 TypeScript 支持, 并且通过 TypeScript Salsa 为 JavaScript �
 
 ### 使用增量编译
 
+通常我会习惯在开发中开启增量编译, 当源文件改动时自动编译. 要为默认构建任务开启增量编译:
+
+1. 在 `task.json` 中 `args` 数组里添加一项 `"-w"` (`"--watch"`).
+2. 增加一项 `isWatching` 值为 `true`.
+3. 将 `problemMatcher` 一项改为 `"$tsc-watch"`.
+
+```json
+{
+    "version": "0.1.0",
+    "command": "tsc",
+    "isShellCommand": true,
+    "isWatching": true,
+    "showOutput": "silent",
+    "args": ["-w"],
+    "problemMatcher": "$tsc-watch"
+}
+```
+
+另外建议同时将 `tsconfig.json` 的 `compilerOptions` 中配置 `noEmitOnError` 为 `true`.
+
+```json
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "noEmitOnError": true
+    },
+    "exclude": [
+        "node_modules"
+    ]
+}
+```
+
 ### 项目结构
 
 ## 推荐配置
