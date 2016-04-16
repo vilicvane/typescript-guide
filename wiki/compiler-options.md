@@ -1,6 +1,6 @@
 # 编译选项
 
-由 [vilicvane](https://github.com/vilic) 译自 [TypeScript Wiki](https://github.com/Microsoft/TypeScript/wiki/Compiler-Options/294bc9d4c27f905cdf118376f9b0f172972757a9).
+由 [vilicvane](https://github.com/vilic) 译自 [TypeScript Wiki](https://github.com/Microsoft/TypeScript-Handbook/blob/2e0403a535722521b100764615004ea468e9429b/pages/Compiler%20Options.md).
 
 选项 | 简写 | 描述
 -------|-----------|------------
@@ -35,7 +35,7 @@
 `--skipDefaultLibCheck` | | 跳过默认库文件检查.
 `--out` | | 已弃用. 请使用 `--outFile` 代替.
 `--outDir` | | 将文件输出到指定文件夹.
-`--outFile` | | 将输出内容合并为单个文件. 合并的顺序由在命令行中传给编译器的列表与三斜线引用及导入决定. 查看输出文件顺序文档了解更多.
+`--outFile` | | 将输出内容合并为单个文件. 合并的顺序由在命令行中传给编译器的列表与三斜线引用及导入决定. [查看输出文件顺序文档了解更多](https://github.com/Microsoft/TypeScript/wiki/FAQ#how-do-i-control-file-ordering-in-combined-output---out-).
 `--preserveConstEnums` | | 在生成的代码中保留常量枚举声明. 查看[常量枚举文档](https://github.com/Microsoft/TypeScript/blob/master/doc/spec.md#94-constant-enum-declarations) 了解更多.
 `--pretty`<sup>[1]</sup> | | 使用颜色和上下文丰富报错和信息.
 `--removeComments` | | 移除除以 `/*!` 开头的版权头信息以外的所有注释.
