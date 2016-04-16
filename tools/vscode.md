@@ -17,6 +17,8 @@ VSCode 内置 TypeScript 支持, 并且通过 TypeScript Salsa 为 JavaScript �
     npm install --global tsd
     ```
 
+> 未来 `tsd` 将会被新的工具 [typings](https://github.com/typings/typings) 替代, 但就目前来讲 `typings` 并不算好用.
+
 ### 新建 TypeScript 项目
 
 1. 新建项目文件夹 `ts-test` 并在 VSCode 中打开.
@@ -44,20 +46,21 @@ VSCode 内置 TypeScript 支持, 并且通过 TypeScript Salsa 为 JavaScript �
     test('Hello, VSCode!');
     ```
 
-4. 按下 `F1` 或 `Ctrl/Cmd+Shift+P`, 输入 `build`, 选中 "Tasks: Run Build Task". VSCode 将会提示 "No task runner configured", 点击 "Configure Task Runner" 进行配置. VSCode 打开自动生成的 `.vscode/tasks.json` 文件, 以便我们进行修改. 接下来将其替换为以下配置并保存:
+4. 按下 `F1` 或 `Ctrl/Cmd+Shift+P`, 输入 `build`, 选中 "Tasks: Run Build Task". VSCode 将会提示 "No task runner configured", 点击 "Configure Task Runner" 进行配置. VSCode 会给出一个任务模板列表, 其中有两项关于 TypeScript 构建的配置, 一项为普通编译, 一项为增量编译 (监视模式). 比如我们可以选择增量编译的模板, VS Code 会生成如下 `tasks.json` 文件:
 
     ```json
     {
         "version": "0.1.0",
         "command": "tsc",
         "isShellCommand": true,
+        "args": ["-w", "-p", "."],
         "showOutput": "silent",
-        "args": [],
-        "problemMatcher": "$tsc"
+        "isWatching": true,
+        "problemMatcher": "$tsc-watch"
     }
     ```
 
-5. 再次按上一步的方法执行构建任务, 或者也可以使用快捷键 `Ctrl/Cmd+Shift+B`. 如果一切顺利, 编译完成后项目目录下回出现编译后的 `test.js` 文件:
+5. 再次按上一步的方法再次执行构建任务, 或者也可以使用快捷键 `Ctrl/Cmd+Shift+B`. 如果一切顺利, 编译完成后项目目录下回出现编译后的 `test.js` 文件:
 
     ```js
     function test(str) {
@@ -66,41 +69,7 @@ VSCode 内置 TypeScript 支持, 并且通过 TypeScript Salsa 为 JavaScript �
     test('Hello, VSCode!');
     ```
 
-这样一个简单的 TypeScript 项目流程就搞定了, 在命令行中输入 `node test.js` 即可执行编译后的 JavaScript 文件.
-
-### 使用增量编译
-
-通常我会习惯在开发中开启增量编译, 当源文件改动时自动编译. 要为默认构建任务开启增量编译:
-
-1. 在 `task.json` 中 `args` 数组里添加一项 `"-w"` (`"--watch"`).
-2. 增加一项 `isWatching` 值为 `true`.
-3. 将 `problemMatcher` 一项改为 `"$tsc-watch"`.
-
-```json
-{
-    "version": "0.1.0",
-    "command": "tsc",
-    "isShellCommand": true,
-    "isWatching": true,
-    "showOutput": "silent",
-    "args": ["-w"],
-    "problemMatcher": "$tsc-watch"
-}
-```
-
-另外建议同时将 `tsconfig.json` 的 `compilerOptions` 中配置 `noEmitOnError` 为 `true`.
-
-```json
-{
-    "compilerOptions": {
-        "module": "commonjs",
-        "noEmitOnError": true
-    },
-    "exclude": [
-        "node_modules"
-    ]
-}
-```
+这样一个简单的 TypeScript 项目流程就搞定了, 在命令行中输入 `node test.js` 即可执行编译后的 JavaScript 文件. 如果配置构建任务时启用了监视模式, 当源文件改动时, TypeScript 编译器会自动进行增量编译. 在某些情况下 (如删除了某个 .ts 文件), VS Code 会自动重启任务, 使项目能正常编译.
 
 ### 项目结构
 
