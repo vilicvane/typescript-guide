@@ -223,9 +223,9 @@ function mumble(check: boolean) {
 }
 ```
 
-### 带标签的联合类型
+### 带标记的联合类型
 
-TypeScript 2.0 实现了对带标签的 (或被区别的) 联合类型. 特别的, TS 编译器现在支持通过对可识别的属性进行判断来收窄联合类型, 并且支持 `switch` 语句.
+TypeScript 2.0 实现了对带标记的 (或被区别的) 联合类型. 特别的, TS 编译器现在支持通过对可识别的属性进行判断来收窄联合类型, 并且支持 `switch` 语句.
 
 ##### 例子
 
@@ -408,25 +408,23 @@ a = b;         // 错误, 缺少会改变数组值的方法
 
 ### 指定函数的 `this` 类型
 
+在指定类和接口中 `this` 的类型之后, 函数和方法现在可以声明它们期望的 `this` 类型了.
 
-
-Following up on specifying the type of `this` in a class or an interface, functions and methods can now declare the type of `this` they expect.
-
-By default the type of `this` inside a function is `any`.
-Starting with TypeScript 2.0, you can provide an explicit `this` parameter.
-`this` parameters are fake parameters that come first in the parameter list of a function:
+函数中 `this` 的类型默认为 `any`.
+从 TypeScript 2.0 开始, 你可以添加一个明确地 `this` 参数.
+`this` 参数是位于函数参数列表开头的假参数.
 
 ```ts
 function f(this: void) {
-    // make sure `this` is unusable in this standalone function
+    // 确保 `this` 在这个单独的函数中不可用
 }
 ```
 
-#### `this` parameters in callbacks
+#### 回调函数中的 `this` 参数
 
-Libraries can also use `this` parameters to declare how callbacks will be invoked.
+库也可以使用 `this` 参数来声明回调会如何被调用.
 
-##### Example
+##### 例子
 
 ```ts
 interface UIElement {
@@ -434,33 +432,33 @@ interface UIElement {
 }
 ```
 
-`this: void` means that `addClickListener` expects `onclick` to be a function that does not require a `this` type.
+`this: void` 说明 `addClickListener` 期望 `onclick` 是一个不要求 `this` 类型的函数.
 
-Now if you annotate calling code with `this`:
+现在如果你标注 `this` 的调用代码:
 
 ```ts
 class Handler {
     info: string;
     onClickBad(this: Handler, e: Event) {
-        // oops, used this here. using this callback would crash at runtime
+        // 啊哦, 这里使用了 this. 把它用作回调函数可能会在运行时崩掉
         this.info = e.message;
     };
 }
 let h = new Handler();
-uiElement.addClickListener(h.onClickBad); // error!
+uiElement.addClickListener(h.onClickBad); // 错误!
 ```
 
 #### `--noImplicitThis`
 
-A new flag is also added in TypeScript 2.0 to flag all uses of `this` in functions without an explicit type annotation.
+在 TypeScript 2.0 中也加入了一个新的选项来检查函数中没有明确标注类型的 `this` 的使用.
 
-### Glob support in `tsconfig.json`
+### `tsconfig.json` 对 glob 的支持
 
-Glob support is here!! Glob support has been [one of the most requested features](https://github.com/Microsoft/TypeScript/issues/1927).
+支持 glob 啦!! 对 glob 的支持一直是 [请求最多的特性之一](https://github.com/Microsoft/TypeScript/issues/1927).
 
-Glob-like file patterns are supported two properties `"include"` and `"exclude"`.
+类似 glob 的文件匹配模板现在被 `"include"` 和 `"exclude"` 两个属性支持.
 
-##### Example
+##### 例子
 
 ```json
 {
@@ -482,22 +480,22 @@ Glob-like file patterns are supported two properties `"include"` and `"exclude"`
 }
 ```
 
-The supported glob wildcards are:
+支持的 glob 通配符有:
 
-* `*` matches zero or more characters (excluding directory separators)
-* `?` matches any one character (excluding directory separators)
-* `**/` recursively matches any subdirectory
+* `*`匹配零个或多个字符 (不包括目录分隔符)
+* `?` 匹配任意一个字符 (不包括目录分隔符)
+* `**/` 递归匹配子目录
 
-If a segment of a glob pattern includes only `*` or `.*`, then only files with supported extensions are included (e.g. `.ts`, `.tsx`, and `.d.ts` by default with `.js` and `.jsx` if `allowJs` is set to true).
+如果 glob 模板的一个片段只包含 `*` 或 `.*`, 那么只有扩展名被支持的文件会被包含 (比如默认有 `.ts`, `.tsx` 和 `.d.ts`, 如果 `allowJs` 被启用的话还有 `.js` 和 `.jsx`).
 
-If the `"files"` and `"include"` are both left unspecified, the compiler defaults to including all TypeScript (`.ts`, `.d.ts` and `.tsx`) files in the containing directory and subdirectories except those excluded using the `"exclude"` property. JS files (`.js` and `.jsx`) are also included if `allowJs` is set to true.
+如果 `"files"` 和 `"include"` 都没有指定, 编译器会默认包含当前目录及其子目录中除开由 `"exclude"` 属性排除的以外所有 TypeScript (`.ts`, `.d.ts` 和 `.tsx`) 文件. 如果 `allowJs` 被开启, JS 文件 (`.js` 和 `.jsx`) 也会被包含.
 
-If the `"files"` or `"include"` properties are specified, the compiler will instead include the union of the files included by those two properties.
-Files in the directory specified using the `"outDir"` compiler option are always excluded unless explicitly included via the `"files"` property (even when the "`exclude`" property is specified).
+如果指定了 `"files"` 或 `"include"` 属性, 编译器会便会包含两个属性指定文件的并集.
+除非明确地通过 `"files"` 属性指定 (即便指定了 `"exclude"` 属性), 在使用 `"outDir"` 编译器选项指定目录中的文件会总是会被排除.
 
-Files included using `"include"` can be filtered using the `"exclude"` property.
-However, files included explicitly using the `"files"` property are always included regardless of `"exclude"`.
-The `"exclude"` property defaults to excluding the `node_modules`, `bower_components`, and `jspm_packages` directories when not specified.
+使用 `"include"` 包含的文件可以使用 `"exclude"` 属性排除.
+然而, 由 `"files"` 属性明确包含的文件总是会被包含, 不受 `"exclude"` 影响.
+如果没有指定, `"exclude"` 属性默认会排除 `node_modules`, `bower_components` 以及 `jspm_packages` 目录.
 
 ### Module resolution enhancements: BaseUrl, Path mapping, rootDirs and tracing
 
@@ -510,7 +508,7 @@ See [Module Resolution](http://www.typescriptlang.org/docs/handbook/module-resol
 Using a `baseUrl` is a common practice in applications using AMD module loaders where modules are "deployed" to a single folder at run-time.
 All module imports with non-relative names are assumed to be relative to the `baseUrl`.
 
-##### Example
+##### 例子
 
 ```json
 {
@@ -533,7 +531,7 @@ Loaders use a mapping configuration to map module names to files at run-time, se
 
 The TypeScript compiler supports the declaration of such mappings using `"paths"` property in `tsconfig.json` files.
 
-##### Example
+##### 例子
 
 For instance, an import to a module `"jquery"` would be translated at runtime to `"node_modules\jquery\dist\jquery.slim.min.js"`.
 
@@ -554,7 +552,7 @@ Consider a project configuration where only some modules are available in one lo
 Using 'rootDirs', you can inform the compiler of the *roots* making up this "virtual" directory;
 and thus the compiler can resolve relative modules imports within these "virtual" directories *as if* were merged together in one directory.
 
-##### Example
+##### 例子
 
 Given this project structure:
 
@@ -619,7 +617,7 @@ previously an ambient module declaration had to be defined for each resource.
 TypeScript 2.0 supports the use of the wildcard character (`*`) to declare a "family" of module names;
 this way, a declaration is only required once for an extension, and not for every resource.
 
-##### Example
+##### 例子
 
 ```ts
 declare module "*!text" {
@@ -645,7 +643,7 @@ console.log(data, fileContent);
 WildChard module names can be even more useful when migrating from an un-typed code base.
 Combined with Shorthand ambient module declarations, a set of modules can be easily declared as `any`.
 
-##### Example
+##### 例子
 
 ```ts
 declare module "myLibrary\*";
@@ -694,7 +692,7 @@ mathLib.isPrime(2);
 
 Optional properties and methods can now be declared in classes, similar to what is already permitted in interfaces.
 
-##### Example
+##### 例子
 
 ```ts
 class Bar {
@@ -731,7 +729,7 @@ A class constructor may be marked `private` or `protected`.
 A class with private constructor cannot be instantiated outside the class body, and cannot be extended.
 A class with protected constructor cannot be instantiated outside the class body, but can be extended.
 
-##### Example
+##### 例子
 
 ```ts
 class Singleton {
@@ -758,7 +756,7 @@ Any sub class will need to declare the abstract properties or be marked as abstr
 Abstract properties cannot have an initializer.
 Abstract accessors cannot have bodies.
 
-##### Example
+##### 例子
 
 ```ts
 abstract class Base {
@@ -819,7 +817,7 @@ Here is a list of available API groups:
 * scripthost
 
 
-##### Example
+##### 例子
 
 ```bash
 tsc --target es5 --lib es5,es6.promise
@@ -839,7 +837,7 @@ TypeScript 2.0 has two new flags to help you maintain a clean code base.
 Also, unused private members of a class would be flagged as errors under `--noUnusedLocals`.
 
 
-##### Example
+##### 例子
 ```ts
 import B, { readFile } from "./b";
 //     ^ Error: `B` declared but never used
@@ -879,7 +877,7 @@ This should facilitate using ES2015-based tree shakers like [rollup](https://git
 Trailing comma in function parameter and argument lists are now allowed.
 This is an implementation for a [Stage-3 ECMAScript proposal](https://jeffmo.github.io/es-trailing-function-commas/) that emits down to valid ES3/ES5/ES6.
 
-##### Example
+##### 例子
 ```ts
 function foo(
   bar: Bar,
@@ -912,7 +910,7 @@ TypeScript 2.0 relaxes this constraint and allows duplicate identifiers across b
 
 Within the same block duplicate definitions are still disallowed.
 
-##### Example
+##### 例子
 
 ```ts
 interface Error {
