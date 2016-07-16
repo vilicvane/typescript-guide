@@ -1,6 +1,937 @@
 # TypeScript 新增特性一览
 
-由 [vilicvane](https://github.com/vilic) 译自 [TypeScript Wiki](https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript/78a12d04d7ba25d5253bcb0bc4054976c9b628ac).
+由 [vilicvane](https://github.com/vilic) 译自 [TypeScript Wiki](https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript/6ed5b9047a33ff8fb300ca63a290d3a476b378b3).
+
+## TypeScript 2.0
+
+### 能理解 null 和 undefined 的类型<sup>[1]</sup>
+
+TypeScript 有两个特殊的类型, Null 和 Undefined, 他们分别对应了值 `null` 和 `undefined`. 过去这些类型没有明确的名称, 但 `null` 和 `undefined` 现在可以在任意类型检查模式下作为类型名称使用.
+
+类型检查系统过去认为 `null` 和 `undefined` 可以赋值给任何东西. 或者说, `null` 和 `undefined` 是任何类型的合法值, 并且之前无法将他们排除 (由此也无法检测相关的错误使用).
+
+#### `--strictNullChecks`
+
+`--strictNullChecks` 选项会启用新的严格空值检查模式.
+
+在严格空值检查模式下, 值 `null` 和 `undefined` 不在属与所有类型并且只能被赋值给它们自己对应的类型和 `any` (一个例外是 `undefined` 也可以被复制给 `void`). 所以, 虽然在普通类型检查模式 `T` 和 `T | undefined` 意义相同 (因为 `undefined` 被认为是任何 `T` 的子类型), 在严格类型检查模式下它们是不同的, 并且只有 `T | undefined` 允许 `undefined` 作为值. `T` 和 `T | null` 的关系也是如此.
+
+##### 例子
+
+```ts
+// 使用 --strictNullChecks 选项编译
+let x: number;
+let y: number | undefined;
+let z: number | null | undefined;
+x = 1;  // 正确
+y = 1;  // 正确
+z = 1;  // 正确
+x = undefined;  // 错误
+y = undefined;  // 正确
+z = undefined;  // 正确
+x = null;  // 错误
+y = null;  // 错误
+z = null;  // 正确
+x = y;  // 错误
+x = z;  // 错误
+y = x;  // 正确
+y = z;  // 错误
+z = x;  // 正确
+z = y;  // 正确
+```
+
+#### 使用前赋值检查
+
+在严格空值检查模式下, 编译器要求每个类型中不包含 `undefined` 的本地变量的引用在它之前的代码路径里被赋值.
+
+##### 例子
+
+```ts
+// 使用 --strictNullChecks 选项编译
+let x: number;
+let y: number | null;
+let z: number | undefined;
+x;  // 错误, 引用使用前没有被赋值
+y;  // 错误, 引用使用前没有被赋值
+z;  // 正确
+x = 1;
+y = null;
+x;  // 正确
+y;  // 正确
+```
+
+#### 可选参数和属性
+
+可选参数和属性类型会自动包含 `undefined`, 即便它们的类型标注没有专门地包含 `undefined`. 举个例子, 下面的两个类型是等价的:
+
+```ts
+// 使用 --strictNullChecks 选项编译
+type T1 = (x?: number) => string;              // x 的类型为 number | undefined
+type T2 = (x?: number | undefined) => string;  // x 的类型为 number | undefined
+```
+
+#### 非 null 和非 undefined 类型收窄
+
+如果一个对象的类型包含了 `null` 或者 `undefined`, 访问它的属性或者调用它的方法会产生编译时错误. 然而, 类型收窄已经支持了非 null 和非 undefined 检查.
+
+##### 例子
+
+```ts
+// 使用 --strictNullChecks 选项编译
+declare function f(x: number): string;
+let x: number | null | undefined;
+if (x) {
+    f(x);  // 正确, x 的类型在这里是 number
+}
+else {
+    f(x);  // 错误, x 的类型在这里是 number?
+}
+let a = x != null ? f(x) : "";  // a 的类型为 string
+let b = x && f(x);  // b 的类型为 string?
+```
+
+非 null 和非 undefined 类型收窄可以使用 `==`, `!=`, `===` 或者 `!==` 运算符与 `null` 或者 `undefined` 进行比较, 比如 `x != null` 或者 `x === undefined`. 对目标变量类型的效果能准确反映 JavaScript 的语义 (比如双等号运算符两个值都会检查, 而三等号只会检查指定的值).
+
+#### 类型收窄中带点的名称
+
+类型收窄过去只支持对本地变量和参数的检查. 现在类型收窄支持检查包含了带一级或多级属性访问的变量或参数的 "带点的名称".
+
+##### 例子
+
+```ts
+interface Options {
+    location?: {
+        x?: number;
+        y?: number;
+    };
+}
+
+function foo(options?: Options) {
+    if (options && options.location && options.location.x) {
+        const x = options.location.x;  // x 的类型为 number
+    }
+}
+```
+
+对于带点名称的类型收窄也可以和用户自定义的类型收窄函数及 `typeof` 和 `instanceof` 运算符一起使用, 并且不依赖 `--strictNullChecks` 编译器选项.
+
+带点名称的类型收窄如果跟着对其任意部分的赋值, 会使收窄无效. 比如说, 对于 `x.y.z` 的类型收窄如果后面跟着对 `x`, `x.y` 或者 `x.y.z` 的赋值都会使其无效.
+
+#### 表达式运算符
+
+表达式运算符允许操作数的类型包含 `null` 和/或 `undefined`, 但会总是产生类型为非 null 和非 undefined 的值.
+
+```ts
+// 使用 --strictNullChecks 选项编译
+function sum(a: number | null, b: number | null) {
+    return a + b;  // 产生类型为 number 的值
+}
+```
+
+`&&` 运算符会根据左边操作数的类型将 `null` 和/或 `undefined` 到右边被操作数的类型上, 而 `||` 运算符会在结果的联合类型中同时移除左边被操作数类型中的 `null` 和 `undefined`.
+
+```ts
+// 使用 --strictNullChecks 选项编译
+interface Entity {
+    name: string;
+}
+let x: Entity | null;
+let s = x && x.name;  // s 的类型为 string | null
+let y = x || { name: "test" };  // y 的类型为 Entity
+```
+
+#### 类型拓宽
+
+`null` 和 `undefined` 类型在严格空值检查模式中不会被拓宽为 `any`.
+
+```ts
+let z = null;  // z 的类型为 null
+```
+
+在普通的类型检查模式中, 会因为拓宽将 `z` 的类型推断为 `any`, 但在严格空值检查模式中, `z` 推断得出的类型是 `null` (也正因为如此, 在没有类型标注的情况下, `null` 是 `z` 唯一可能的值).
+
+#### 非空断言运算符
+
+在类型检查器无法得出与实际相符的结论的上下文中, 可以使用新的 `!` 后缀表达式运算符来声明它的操作数是非 null 和非 undefined 的. 特别的, 运算 `x!` 会得出 `x` 排除 `null` 和 `undefined` 后的类型的值. 与 `<T>x` 和 `x as T` 这种形式的类型断言相似, `!` 非空断言运算符在输出的 JavaScript 代码中会被直接移除.
+
+```ts
+// 使用 --strictNullChecks 选项编译
+function validateEntity(e: Entity?) {
+    // 当 e 是 null 或非法 entity 时抛出异常
+}
+
+function processEntity(e: Entity?) {
+    validateEntity(e);
+    let s = e!.name;  // 声明 e 非 null 并且访问 name
+}
+```
+
+#### 兼容性
+
+这些新的特性在设计的时候考虑了严格空值检查模式和常规类型检查模式下的使用. 比如 `null` 和 `undefined` 类型在常规类型检查模式下会从联合类型中自动清除 (因为它们是其他任何类型的子类型), 而 `!` 非空断言运算符虽然允许在常规类型检查模式中使用, 但不会有效果. 于是, 更新后支持可为 null 或者 undefined 类型的声明文件为了向后兼容依然可以在常规类型检查模式下使用.
+
+实际使用时, 严格的空值检查模式需要所有被编译的文件包含是否可为 null 或 undefined 的信息.
+
+### 基于控制流的类型分析
+
+TypeScript 2.0 实现了对于本地变量和参数基于控制流的类型分析. 过去对类型收窄进行的分析仅限于 `if` 语句和 `?:` 条件表达式, 并没有包含赋值和控制流结构带来的影响, 比如 `return` 和 `break` 语句. 在 TypeScript 2.0 中, 类型检查器会分析语句和表达式中所有可能的控制流, 以尽可能得出包含联合类型的本地变量及参数在指定位置最准确的类型 (收窄的类型).
+
+##### 例子
+
+```ts
+function foo(x: string | number | boolean) {
+    if (typeof x === "string") {
+        x; // x 的类型在这里是 string
+        x = 1;
+        x; // x 的类型在这里是 number
+    }
+    x; // x 的类型在这里是 number | boolean
+}
+
+function bar(x: string | number) {
+    if (typeof x === "number") {
+        return;
+    }
+    x; // x 的类型在这里是 string
+}
+```
+
+基于控制流的类型分析在 `--strictNullChecks` 模式下非常重要, 因为可空的类型是使用联合类型表示的:
+
+```ts
+function test(x: string | null) {
+    if (x === null) {
+        return;
+    }
+    x; // x 在这之后的类型为 string
+}
+```
+
+此外, 在 `--strictNullChecks` 模式, 基于控制流的类型分析包含了对类型不允许值 `undefined` 的本地变量的*明确赋值分析*.
+
+```ts
+function mumble(check: boolean) {
+    let x: number; // 类型不允许 undefined
+    x; // 错误, x 是 undefined
+    if (check) {
+        x = 1;
+        x; // 正确
+    }
+    x; // 错误, x 可能是 undefined
+    x = 2;
+    x; // 正确
+}
+```
+
+### 带标签的联合类型
+
+TypeScript 2.0 实现了对带标签的 (或被区别的) 联合类型. 特别的, TS 编译器现在支持通过对可识别的属性进行判断来收窄联合类型, 并且支持 `switch` 语句.
+
+##### 例子
+
+```ts
+interface Square {
+    kind: "square";
+    size: number;
+}
+
+interface Rectangle {
+    kind: "rectangle";
+    width: number;
+    height: number;
+}
+
+interface Circle {
+    kind: "circle";
+    radius: number;
+}
+
+type Shape = Square | Rectangle | Circle;
+
+function area(s: Shape) {
+    // 在下面的语句中, s 的类型在每一个分支中都被收窄了
+    // 根据可识别属性的值, 允许变量的其他属性在没有类型断言的情况下被访问
+    switch (s.kind) {
+        case "square": return s.size * s.size;
+        case "rectangle": return s.width * s.height;
+        case "circle": return Math.PI * s.radius * s.radius;
+    }
+}
+
+function test1(s: Shape) {
+    if (s.kind === "square") {
+        s;  // Square
+    }
+    else {
+        s;  // Rectangle | Circle
+    }
+}
+
+function test2(s: Shape) {
+    if (s.kind === "square" || s.kind === "rectangle") {
+        return;
+    }
+    s;  // Circle
+}
+```
+
+*可识别属性的类型收窄* 可以是如下的表达式 `x.p == v`, `x.p === v`, `x.p != v`, 或 `x.p !== v`, 其中 `p` 和 `v` 分别是一个属性和为字符串字面量类型或字符串字面量类型的联合类型的表达式.
+可识别属性的类型收窄会将 `x` 的类型收窄到包含的可识别属性 `p` 为 `v` 一个可能的值的 `x` 的部分类型.
+
+注意我们现在仅支持字符串字面量类型的可识别属性.
+我们打算在以后增加布尔值和数字的字面类型.
+
+### `never` 类型
+
+TypeScript 2.0 引入了新的原始类型 `never`.
+`never` 类型代表从来不会出现的值的类型.
+特别的, `never` 可以是永远不返回的函数的返回值类型, 也可以是变量在类型收窄中不可能为真的类型.
+
+`never` 类型有以下特征:
+
+* `never` 是任何类型的子类型, 并且可以赋值给任何类型.
+* 没有类型是 `never` 的子类型或者可以复制给 `never` (除了 `never` 本身).
+* 在一个没有返回值标注的函数表达式或箭头函数中, 如果函数没有 `return` 语句, 或者仅有表达式类型为 `never` 的 `return` 语句, 并且函数的终止点无法被执行到 (按照控制流分析), 则推到出的函数返回值类型是 `never`.
+* 在一个明确指定了 `never` 返回值类型的函数中,所有 `return` 语句 (如果有) 表达式的值必须为 `never` 类型, 且函数不应能执行到终止点.
+
+由于 `never` 是所有类型的子类型, 在联合类型中它始终被省略, 并且只要函数有其他返回的类型, 推断的函数的返回值类型中就会忽略它.
+
+一些返回 `never` 的函数的例子:
+
+```ts
+// 返回 never 的函数必须有无法被执行到的终止点
+function error(message: string): never {
+    throw new Error(message);
+}
+
+// 推断的返回值是 never
+function fail() {
+    return error("一些东西失败了");
+}
+
+// 返回 never 的函数必须有无法被执行到的终止点
+function infiniteLoop(): never {
+    while (true) {
+    }
+}
+```
+
+一些使用返回 `never` 的函数的例子:
+
+```ts
+// 推断的返回值类型为 number
+function move1(direction: "up" | "down") {
+    switch (direction) {
+        case "up":
+            return 1;
+        case "down":
+            return -1;
+    }
+    return error("永远不应该到这里");
+}
+
+// 推断的返回值类型为 number
+function move2(direction: "up" | "down") {
+    return direction === "up" ? 1 :
+        direction === "down" ? -1 :
+        error("永远不应该到这里");
+}
+
+// 推断的返回值类型为 T
+function check<T>(x: T | undefined) {
+    return x || error("未定义的值");
+}
+```
+
+因为 `never` 可以赋值给任何类型, 返回 `never` 的函数可以在回调需要返回一个具体类型的时候被使用:
+
+```ts
+function test(cb: () => string) {
+    let s = cb();
+    return s;
+}
+
+test(() => "hello");
+test(() => fail());
+test(() => { throw new Error(); })
+```
+
+### 只读属性和索引签名
+
+现在结合 `readonly` 修饰符声明的属性或者索引签名会被认为是只读的.
+
+只读属性可以有初始化语句, 并且可以在当前类声明的构造函数中被赋值, 但对于只读属性其他形式的赋值是不被允许的.
+
+另外, 在一些情况下, 实体是*隐式*只读的:
+
+* 一个只有 `get` 访问符没有 `set` 访问符声明的属性被认为是只读的.
+* 在枚举对象的类型中, 枚举成员被认为是只读属性.
+* 在模块对象的类型中, 导出的 `const` 变量被认为是只读属性.
+* 在 `import` 语句中声明的实体被认为是只读的.
+* 通过 ES2015 命名空间导入来访问的实体被认为是只读的 (比如当 `foo` 为 `import * as foo from "foo"` 声明时, `foo.x` 是只读的).
+
+##### 例子
+
+```ts
+interface Point {
+    readonly x: number;
+    readonly y: number;
+}
+
+var p1: Point = { x: 10, y: 20 };
+p1.x = 5;  // 错误, p1.x 是只读的
+
+var p2 = { x: 1, y: 1 };
+var p3: Point = p2;  // 正确, p2 的只读别名
+p3.x = 5;  // 错误, p3.x 是只读的
+p2.x = 5;  // 正确, 但由于是别名也会改变 p3.x
+```
+
+```ts
+class Foo {
+    readonly a = 1;
+    readonly b: string;
+    constructor() {
+        this.b = "hello";  // 在构造函数中允许赋值
+    }
+}
+```
+
+```ts
+let a: Array<number> = [0, 1, 2, 3, 4];
+let b: ReadonlyArray<number> = a;
+b[5] = 5;      // 错误, 元素是只读的
+b.push(5);     // 错误, 没有 push 方法 (因为它会改变数组)
+b.length = 3;  // 错误, length 是只读的
+a = b;         // 错误, 缺少会改变数组值的方法
+```
+
+### 指定函数的 `this` 类型
+
+
+
+Following up on specifying the type of `this` in a class or an interface, functions and methods can now declare the type of `this` they expect.
+
+By default the type of `this` inside a function is `any`.
+Starting with TypeScript 2.0, you can provide an explicit `this` parameter.
+`this` parameters are fake parameters that come first in the parameter list of a function:
+
+```ts
+function f(this: void) {
+    // make sure `this` is unusable in this standalone function
+}
+```
+
+#### `this` parameters in callbacks
+
+Libraries can also use `this` parameters to declare how callbacks will be invoked.
+
+##### Example
+
+```ts
+interface UIElement {
+    addClickListener(onclick: (this: void, e: Event) => void): void;
+}
+```
+
+`this: void` means that `addClickListener` expects `onclick` to be a function that does not require a `this` type.
+
+Now if you annotate calling code with `this`:
+
+```ts
+class Handler {
+    info: string;
+    onClickBad(this: Handler, e: Event) {
+        // oops, used this here. using this callback would crash at runtime
+        this.info = e.message;
+    };
+}
+let h = new Handler();
+uiElement.addClickListener(h.onClickBad); // error!
+```
+
+#### `--noImplicitThis`
+
+A new flag is also added in TypeScript 2.0 to flag all uses of `this` in functions without an explicit type annotation.
+
+### Glob support in `tsconfig.json`
+
+Glob support is here!! Glob support has been [one of the most requested features](https://github.com/Microsoft/TypeScript/issues/1927).
+
+Glob-like file patterns are supported two properties `"include"` and `"exclude"`.
+
+##### Example
+
+```json
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "outFile": "../../built/local/tsc.js",
+        "sourceMap": true
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "**/*.spec.ts"
+    ]
+}
+```
+
+The supported glob wildcards are:
+
+* `*` matches zero or more characters (excluding directory separators)
+* `?` matches any one character (excluding directory separators)
+* `**/` recursively matches any subdirectory
+
+If a segment of a glob pattern includes only `*` or `.*`, then only files with supported extensions are included (e.g. `.ts`, `.tsx`, and `.d.ts` by default with `.js` and `.jsx` if `allowJs` is set to true).
+
+If the `"files"` and `"include"` are both left unspecified, the compiler defaults to including all TypeScript (`.ts`, `.d.ts` and `.tsx`) files in the containing directory and subdirectories except those excluded using the `"exclude"` property. JS files (`.js` and `.jsx`) are also included if `allowJs` is set to true.
+
+If the `"files"` or `"include"` properties are specified, the compiler will instead include the union of the files included by those two properties.
+Files in the directory specified using the `"outDir"` compiler option are always excluded unless explicitly included via the `"files"` property (even when the "`exclude`" property is specified).
+
+Files included using `"include"` can be filtered using the `"exclude"` property.
+However, files included explicitly using the `"files"` property are always included regardless of `"exclude"`.
+The `"exclude"` property defaults to excluding the `node_modules`, `bower_components`, and `jspm_packages` directories when not specified.
+
+### Module resolution enhancements: BaseUrl, Path mapping, rootDirs and tracing
+
+TypeScript 2.0 provides a set of additional module resolution knops to *inform* the compiler where to find declarations for a given module.
+
+See [Module Resolution](http://www.typescriptlang.org/docs/handbook/module-resolution.html) documentation for more details.
+
+#### Base URL
+
+Using a `baseUrl` is a common practice in applications using AMD module loaders where modules are "deployed" to a single folder at run-time.
+All module imports with non-relative names are assumed to be relative to the `baseUrl`.
+
+##### Example
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": "./modules"
+  }
+}
+```
+
+Now imports to `"moduleA"` would be looked up in `./modules/moduleA`
+
+```ts
+import A from "moduleA";
+```
+
+#### Path mapping
+
+Sometimes modules are not directly located under *baseUrl*.
+Loaders use a mapping configuration to map module names to files at run-time, see [RequireJs documentation](http://requirejs.org/docs/api.html#config-paths) and [SystemJS documentation](https://github.com/systemjs/systemjs/blob/master/docs/overview.md#map-config).
+
+The TypeScript compiler supports the declaration of such mappings using `"paths"` property in `tsconfig.json` files.
+
+##### Example
+
+For instance, an import to a module `"jquery"` would be translated at runtime to `"node_modules\jquery\dist\jquery.slim.min.js"`.
+
+```
+{
+  "compilerOptions": {
+    "paths": {
+      "jquery": ["node_modules/jquery/dist/jquery.d.ts"]
+    }
+}
+```
+
+Using `"paths"` also allow for more sophisticated mappings including multiple fall back locations.
+Consider a project configuration where only some modules are available in one location, and the rest are in another.
+
+#### Virtual Directories with `rootDirs`
+
+Using 'rootDirs', you can inform the compiler of the *roots* making up this "virtual" directory;
+and thus the compiler can resolve relative modules imports within these "virtual" directories *as if* were merged together in one directory.
+
+##### Example
+
+Given this project structure:
+
+```tree
+ src
+ └── views
+     └── view1.ts (imports './template1')
+     └── view2.ts
+
+ generated
+ └── templates
+         └── views
+             └── template1.ts (imports './view2')
+```
+
+A build step will copy the files in `/src/views` and `/generated/templates/views` to the same directory in the output.
+At run-time, a view can expect its template to exist next to it, and thus should import it using a relative name as `"./template"`.
+
+`"rootDirs"` specify a list of *roots* whose contents are expected to merge at run-time.
+So following our example, the `tsconfig.json` file should look like:
+
+```json
+{
+  "compilerOptions": {
+    "rootDirs": [
+      "src/views",
+      "generated/templates/views"
+    ]
+  }
+}
+```
+
+#### Tracing module resolution
+
+`--traceResolution` offers a handy way to understand how modules have been resolved by the compiler.
+
+```shell
+tsc --traceResolution
+```
+
+### Shorthand ambient module declarations
+
+If you don't want to take the time to write out declarations before using a new module, you can now just use a shorthand declaration to get started quickly.
+
+##### declarations.d.ts
+```ts
+declare module "hot-new-module";
+```
+
+All imports from a shorthand module will have the any type.
+
+```ts
+import x, {y} from "hot-new-module";
+x(y);
+```
+
+### Wildcard character in module names
+
+Importing none-code resources using module loaders extension (e.g. [AMD](https://github.com/amdjs/amdjs-api/blob/master/LoaderPlugins.md) or [SystemJS](https://github.com/systemjs/systemjs/blob/master/docs/creating-plugins.md)) has not been easy before;
+previously an ambient module declaration had to be defined for each resource.
+
+TypeScript 2.0 supports the use of the wildcard character (`*`) to declare a "family" of module names;
+this way, a declaration is only required once for an extension, and not for every resource.
+
+##### Example
+
+```ts
+declare module "*!text" {
+    const content: string;
+    export default content;
+}
+
+// Some do it the other way around.
+declare module "json!*" {
+    const value: any;
+    export default value;
+}
+```
+
+Now you can import things that match `"*!text"` or `"json!*"`.
+
+```ts
+import fileContent from "./xyz.txt!text";
+import data from "json!http://example.com/data.json";
+console.log(data, fileContent);
+```
+
+WildChard module names can be even more useful when migrating from an un-typed code base.
+Combined with Shorthand ambient module declarations, a set of modules can be easily declared as `any`.
+
+##### Example
+
+```ts
+declare module "myLibrary\*";
+```
+
+All imports to any module under `myLibrary` would be considered to have the type `any` by the compiler;
+thus, shutting down any checking on the shapes or types of these modules.
+
+```ts
+import { readFile } from "myLibrary\fileSystem\readFile`;
+
+readFile(); // readFile is 'any'
+```
+
+### Support for UMD module definitions
+
+Some libraries are designed to be used in many module loaders, or with no module loading (global variables).
+These are known as [UMD](https://github.com/umdjs/umd) or [Isomorphic](http://isomorphic.net) modules.
+These libraries can be accessed through either an import or a global variable.
+
+For example:
+
+##### math-lib.d.ts
+
+```ts
+export const isPrime(x: number): boolean;'
+export as namespace mathLib;
+```
+
+The library can then be used as an import within modules:
+
+```ts
+import { isPrime } from "math-lib";
+isPrime(2);
+mathLib.isPrime(2); // ERROR: can't use the global definition from inside a module
+```
+
+It can also be used as a global variable, but only inside of a script.
+(A script is a file with no imports or exports.)
+
+```ts
+mathLib.isPrime(2);
+```
+
+### Optional class properties
+
+Optional properties and methods can now be declared in classes, similar to what is already permitted in interfaces.
+
+##### Example
+
+```ts
+class Bar {
+    a: number;
+    b?: number;
+    f() {
+        return 1;
+    }
+    g?(): number;  // Body of optional method can be omitted
+    h?() {
+        return 2;
+    }
+}
+```
+
+When compiled in `--strictNullChecks` mode, optional properties and methods automatically have `undefined` included in their type. Thus, the `b` property above is of type `number | undefined` and the `g` method above is of type `(() => number) | undefined`.
+Type guards can be used to strip away the `undefined` part of the type:
+
+```ts
+function test(x: Bar) {
+    x.a;  // number
+    x.b;  // number | undefined
+    x.f;  // () => number
+    x.g;  // (() => number) | undefined
+    let f1 = x.f();            // number
+    let g1 = x.g && x.g();     // number | undefined
+    let g2 = x.g ? x.g() : 0;  // number
+}
+```
+
+### Private and Protected Constructors
+
+A class constructor may be marked `private` or `protected`.
+A class with private constructor cannot be instantiated outside the class body, and cannot be extended.
+A class with protected constructor cannot be instantiated outside the class body, but can be extended.
+
+##### Example
+
+```ts
+class Singleton {
+    private static instance: Singleton;
+
+    private constructor() { }
+
+    static getInstance() {
+        if (!Singleton.instance) {
+            Singleton.instance = new Singleton();
+        }
+        return Singleton.instance;
+    }
+}
+
+let e = new Singleton(); // Error: constructor of 'Singleton' is private.
+let v = Singleton.getInstance();
+```
+
+### Abstract properties and accessors
+
+An abstract class can declare abstract properties and/or accessors.
+Any sub class will need to declare the abstract properties or be marked as abstract.
+Abstract properties cannot have an initializer.
+Abstract accessors cannot have bodies.
+
+##### Example
+
+```ts
+abstract class Base {
+    abstract name: string;
+    abstract get value();
+    abstract set value(v: number);
+}
+
+class Derived extends Base {
+    name = "derived";
+
+    value = 1;
+}
+```
+
+### Implicit index signatures
+
+An object literal type is now assignable to a type with an index signature if all known properties in the object literal are assignable to that index signature. This makes it possible to pass a variable that was initialized with an object literal as parameter to a function that expects a map or dictionary:
+
+```ts
+function httpService(path: string, headers: { [x: string]: string }) { }
+
+const headers = {
+    "Content-Type": "application/x-www-form-urlencoded"
+};
+
+httpService("", { "Content-Type": "application/x-www-form-urlencoded" });  // Ok
+httpService("", headers);  // Now ok, previously wasn't
+```
+
+### Including built-in type declarations with `--lib`
+
+Getting to ES6/ES2015 built-in API declarations were only limited to `target: ES6`.
+Enter `--lib`; with `--lib` you can specify a list of built-in API declaration groups that you can chose to include in your project.
+For instance, if you expect your runtime to have support for `Map`, `Set` and `Promise` (e.g. most evergreen browsers today), just include `--lib es2015.collection,es2015.promise`.
+Similarly you can exclude declarations you do not want to include in your project, e.g. DOM if you are working on a node project using `--lib es5,es6`.
+
+Here is a list of available API groups:
+
+* dom
+* webworker
+* es5
+* es6 / es2015
+* es2015.core
+* es2015.collection
+* es2015.iterable
+* es2015.promise
+* es2015.proxy
+* es2015.reflect
+* es2015.generator
+* es2015.symbol
+* es2015.symbol.wellknown
+* es2016
+* es2016.array.include
+* es2017
+* es2017.object
+* es2017.sharedmemory
+* scripthost
+
+
+##### Example
+
+```bash
+tsc --target es5 --lib es5,es6.promise
+```
+
+```json
+"compilerOptions": {
+    "lib": ["es5", "es6.promise"]
+}
+```
+
+### Flag unused declarations with `--noUnusedParameters` and `--noUnusedLocals`
+
+TypeScript 2.0 has two new flags to help you maintain a clean code base.
+`--noUnusedParameters` flags any unused function or method parameters errors.
+`--noUnusedLocals` flags any unused local (un-exported) declaration like variables, functions, classes, imports, etc...
+Also, unused private members of a class would be flagged as errors under `--noUnusedLocals`.
+
+
+##### Example
+```ts
+import B, { readFile } from "./b";
+//     ^ Error: `B` declared but never used
+readFile();
+
+
+export function write(message: string, args: string[]) {
+    //                                 ^^^^  Error: 'arg' declared but never used.
+    console.log(message);
+}
+```
+
+Parameters declaration with names starting with `_` are exempt from the unused parameter checking.
+e.g.:
+
+```ts
+function returnNull(_a) { // OK
+    return null;
+}
+```
+
+### Module identifiers allow for `.js` extension
+
+Before TypeScript 2.0, a module identifier was always assumed to be extension-less;
+for instance, given an import as `import d from "./moduleA.js"`, the compiler looked up the definition of `"moduleA.js"` in `./moduleA.js.ts` or `./moduleA.js.d.ts`.
+This made it hard to use bundling/loading tools like (SystemJS)[https://github.com/systemjs/systemjs] that expect URI's in their module identifier.
+
+With TypeScript 2.0, the compiler will look up definition of `"moduleA.js"` in  `./moduleA.ts` or `./moduleA.d.t`.
+
+### Support 'target : es5' with 'module: es6'
+
+Previously flagged as an invalid flag combination, `target: es5` and 'module: es6' is now supported.
+This should facilitate using ES2015-based tree shakers like [rollup](https://github.com/rollup/rollup).
+
+### Trailing commas in function parameter and argument lists
+
+Trailing comma in function parameter and argument lists are now allowed.
+This is an implementation for a [Stage-3 ECMAScript proposal](https://jeffmo.github.io/es-trailing-function-commas/) that emits down to valid ES3/ES5/ES6.
+
+##### Example
+```ts
+function foo(
+  bar: Bar,
+  baz: Baz, // trailing commas are OK in parameter lists
+) {
+  // Implementation...
+}
+
+foo(
+  bar,
+  baz, // and in argument lists
+);
+```
+
+### New `--skipLibCheck`
+
+TypeScript 2.0 adds a new `--skipLibCheck` compiler option that causes type checking of declaration files (files with extension `.d.ts`) to be skipped.
+When a program includes large declaration files, the compiler spends a lot of time type checking declarations that are already known to not contain errors, and compile times may be significantly shortened by skipping declaration file type checks.
+
+Since declarations in one file can affect type checking in other files, some errors may not be detected when `--skipLibCheck` is specified.
+For example, if a non-declaration file augments a type declared in a declaration file, errors may result that are only reported when the declaration file is checked.
+However, in practice such situations are rare.
+
+### Allow duplicate identifiers across declarations
+
+This has been one common source of duplicate definition errors.
+Multiple declaration files defining the same members on interfaces.
+
+TypeScript 2.0 relaxes this constraint and allows duplicate identifiers across blocks, as long as they have *identical* types.
+
+Within the same block duplicate definitions are still disallowed.
+
+##### Example
+
+```ts
+interface Error {
+    stack?: string;
+}
+
+
+interface Error {
+    code?: string;
+    path?: string;
+    stack?: string;  // OK
+}
+
+```
+
+### New `--declarationDir`
+
+`--declarationDir` allows for generating declaration files in a different location than JavaScript files.
+
 
 ## TypeScript 1.8
 
@@ -774,7 +1705,7 @@ f2({ x: 1, y: 1 });
 
 ### 装饰器 (decorators) 支持的编译目标版本增加 ES3
 
-装饰器现在可以编译到 ES3. TypeScript 1.7 在 `__decorate` 函数中移除了 ES5 中增加的 `reduceRight`. 相关改动也内联了对 `Object.getOwnPropertyDescriptor` 和 `Object.defineProperty` 的调用, 并向后兼容, 使 ES5 的输出可以消除前面提到的 `Object` 方法的重复<sup>[1]</sup>.
+装饰器现在可以编译到 ES3. TypeScript 1.7 在 `__decorate` 函数中移除了 ES5 中增加的 `reduceRight`. 相关改动也内联了对 `Object.getOwnPropertyDescriptor` 和 `Object.defineProperty` 的调用, 并向后兼容, 使 ES5 的输出可以消除前面提到的 `Object` 方法的重复<sup>[2]</sup>.
 
 ## TypeScript 1.6
 
@@ -1126,7 +2057,7 @@ class C {
 
 ### 每天发布新版本
 
-由于并不算严格意义上的语言变化<sup>[2]</sup>, 每天的新版本可以使用如下命令安装获得:
+由于并不算严格意义上的语言变化<sup>[3]</sup>, 每天的新版本可以使用如下命令安装获得:
 
 ```sh
 npm install -g typescript@next
@@ -1877,6 +2808,8 @@ module MyControllers {
 
 ---
 
-**[1]** 原文为 "The changes also inline calls `Object.getOwnPropertyDescriptor` and `Object.defineProperty` in a backwards-compatible fashion that allows for a to clean up the emit for ES5 and later by removing various repetitive calls to the aforementioned `Object` methods."
+**[1]** 原文为 "Null- and undefined-aware types"
 
-**[2]** 原文为 "While not strictly a language change..."
+**[2]** 原文为 "The changes also inline calls `Object.getOwnPropertyDescriptor` and `Object.defineProperty` in a backwards-compatible fashion that allows for a to clean up the emit for ES5 and later by removing various repetitive calls to the aforementioned `Object` methods."
+
+**[3]** 原文为 "While not strictly a language change..."
