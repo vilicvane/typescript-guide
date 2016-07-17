@@ -594,29 +594,29 @@ TypeScript 编译器支持在 `tsconfig.json` 里使用 `"path"` 属性来声明
 tsc --traceResolution
 ```
 
-### Shorthand ambient module declarations
+### 简易外围模块声明
 
-If you don't want to take the time to write out declarations before using a new module, you can now just use a shorthand declaration to get started quickly.
+如果你不想在使用一个新的模块前花时间写声明信息, 你现在可以直接使用一个简易声明迅速开始.
 
 ##### declarations.d.ts
 ```ts
 declare module "hot-new-module";
 ```
 
-All imports from a shorthand module will have the any type.
+所有从简易模块中导入的项都为 `any` 类型.
 
 ```ts
 import x, {y} from "hot-new-module";
 x(y);
 ```
 
-### Wildcard character in module names
+### 模块名中的通配符
 
-Importing none-code resources using module loaders extension (e.g. [AMD](https://github.com/amdjs/amdjs-api/blob/master/LoaderPlugins.md) or [SystemJS](https://github.com/systemjs/systemjs/blob/master/docs/creating-plugins.md)) has not been easy before;
-previously an ambient module declaration had to be defined for each resource.
+从模块加载器扩展 (比如 [AMD](https://github.com/amdjs/amdjs-api/blob/master/LoaderPlugins.md) 或者 [SystemJS](https://github.com/systemjs/systemjs/blob/master/docs/creating-plugins.md)) 中导入非代码资源过去并不容易;
+在这之前每一个资源都必须定义对应的外围模块声明.
 
-TypeScript 2.0 supports the use of the wildcard character (`*`) to declare a "family" of module names;
-this way, a declaration is only required once for an extension, and not for every resource.
+TypeScript 2.0 支持使用通配符 (`*`) 来声明一组模块名称;
+这样, 声明一次就可以对应一组扩展, 而不是单个资源.
 
 ##### 例子
 
@@ -626,14 +626,14 @@ declare module "*!text" {
     export default content;
 }
 
-// Some do it the other way around.
+// 有的使用另一种方式
 declare module "json!*" {
     const value: any;
     export default value;
 }
 ```
 
-Now you can import things that match `"*!text"` or `"json!*"`.
+现在你就可以导入匹配 `"*!text"` 或者 `"json!*"` 的东西了.
 
 ```ts
 import fileContent from "./xyz.txt!text";
@@ -641,8 +641,8 @@ import data from "json!http://example.com/data.json";
 console.log(data, fileContent);
 ```
 
-WildChard module names can be even more useful when migrating from an un-typed code base.
-Combined with Shorthand ambient module declarations, a set of modules can be easily declared as `any`.
+通配符模块名在从无类型的代码迁移的过程中会更加有用.
+结合简易模块声明, 一组模块可以轻松地被声明为 `any`.
 
 ##### 例子
 
@@ -650,48 +650,48 @@ Combined with Shorthand ambient module declarations, a set of modules can be eas
 declare module "myLibrary\*";
 ```
 
-All imports to any module under `myLibrary` would be considered to have the type `any` by the compiler;
-thus, shutting down any checking on the shapes or types of these modules.
+所有对 `myLibrary` 下的模块的导入会被编译器认为是 `any` 类型;
+这样, 对于这些模块的外形或类型的检查都会被关闭.
 
 ```ts
 import { readFile } from "myLibrary\fileSystem\readFile`;
 
-readFile(); // readFile is 'any'
+readFile(); // readFile 的类型是 any
 ```
 
-### Support for UMD module definitions
+### 支持 UMD 模块定义
 
-Some libraries are designed to be used in many module loaders, or with no module loading (global variables).
-These are known as [UMD](https://github.com/umdjs/umd) or [Isomorphic](http://isomorphic.net) modules.
-These libraries can be accessed through either an import or a global variable.
+一些库按设计可以在多个模块加载器中使用, 或者不使用模块加载 (全局变量).
+这种方式被叫做 [UMD](https://github.com/umdjs/umd) 或者[同构](http://isomorphic.net)模块.
+这些库既可以使用模块导入, 也可以通过全局变量访问.
 
-For example:
+比如:
 
 ##### math-lib.d.ts
 
 ```ts
-export const isPrime(x: number): boolean;'
+export const isPrime(x: number): boolean;
 export as namespace mathLib;
 ```
 
-The library can then be used as an import within modules:
+这个库现在就可以在模块中作为导入项被使用:
 
 ```ts
 import { isPrime } from "math-lib";
 isPrime(2);
-mathLib.isPrime(2); // ERROR: can't use the global definition from inside a module
+mathLib.isPrime(2); // 错误: 在模块中不能使用全局定义
 ```
 
-It can also be used as a global variable, but only inside of a script.
-(A script is a file with no imports or exports.)
+它也可以被用作全局变量, 但是仅限于脚本中.
+(脚本是指不包含导入项或者导出项的文件.)
 
 ```ts
 mathLib.isPrime(2);
 ```
 
-### Optional class properties
+### 可选的类属性
 
-Optional properties and methods can now be declared in classes, similar to what is already permitted in interfaces.
+可选的类属性和方法现在可以在类中被声明了, 与之前已经在接口中允许的相似.
 
 ##### 例子
 
@@ -702,15 +702,15 @@ class Bar {
     f() {
         return 1;
     }
-    g?(): number;  // Body of optional method can be omitted
+    g?(): number;  // 可选方法的函数体可以被省略
     h?() {
         return 2;
     }
 }
 ```
 
-When compiled in `--strictNullChecks` mode, optional properties and methods automatically have `undefined` included in their type. Thus, the `b` property above is of type `number | undefined` and the `g` method above is of type `(() => number) | undefined`.
-Type guards can be used to strip away the `undefined` part of the type:
+当在 `--strictNullChecks` 模式下编译时, 可选属性和方法会自动在其类型中包含 `undefined`. 如此, 上面的 `b` 属性类型为 `number | undefined`, `g` 方法类型为 `(() => number) | undefined`.
+类型收窄可以被用来排除这些类型中的 `undefined` 部分:
 
 ```ts
 function test(x: Bar) {
@@ -724,11 +724,11 @@ function test(x: Bar) {
 }
 ```
 
-### Private and Protected Constructors
+### 私有和受保护的构造函数
 
-A class constructor may be marked `private` or `protected`.
-A class with private constructor cannot be instantiated outside the class body, and cannot be extended.
-A class with protected constructor cannot be instantiated outside the class body, but can be extended.
+类的构造函数可以被标记为 `private` 或 `protected`.
+一个有私有构造函数的类不能在类定义以外被实例化, 并且不能被扩展.
+一个有受保护构造函数的类不能在类定义以外被实例化, 但是可以被扩展.
 
 ##### 例子
 
@@ -746,16 +746,16 @@ class Singleton {
     }
 }
 
-let e = new Singleton(); // Error: constructor of 'Singleton' is private.
+let e = new Singleton(); // 错误: 'Singleton' 的构造函数是私有的.
 let v = Singleton.getInstance();
 ```
 
-### Abstract properties and accessors
+### 抽象属性和访问器
 
-An abstract class can declare abstract properties and/or accessors.
-Any sub class will need to declare the abstract properties or be marked as abstract.
-Abstract properties cannot have an initializer.
-Abstract accessors cannot have bodies.
+一个抽象类可以声明抽象的属性和/或访问器.
+一个子类需要声明这些抽象的属性或者被标记为抽象的.
+抽象的属性不能有初始值.
+抽象的访问器不能有定义.
 
 ##### 例子
 
@@ -773,7 +773,7 @@ class Derived extends Base {
 }
 ```
 
-### Implicit index signatures
+### 隐式索引签名
 
 An object literal type is now assignable to a type with an index signature if all known properties in the object literal are assignable to that index signature. This makes it possible to pass a variable that was initialized with an object literal as parameter to a function that expects a map or dictionary:
 
