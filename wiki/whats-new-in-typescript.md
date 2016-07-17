@@ -497,16 +497,16 @@ uiElement.addClickListener(h.onClickBad); // 错误!
 然而, 由 `"files"` 属性明确包含的文件总是会被包含, 不受 `"exclude"` 影响.
 如果没有指定, `"exclude"` 属性默认会排除 `node_modules`, `bower_components` 以及 `jspm_packages` 目录.
 
-### Module resolution enhancements: BaseUrl, Path mapping, rootDirs and tracing
+### 模块解析增强: 基准 URL, 路径映射, 多个根目录及追踪
 
-TypeScript 2.0 provides a set of additional module resolution knops to *inform* the compiler where to find declarations for a given module.
+TypeScript 2.0 提供了一系列模块解析配置来*告知*编译器从哪里找到给定模块的声明.
 
-See [Module Resolution](http://www.typescriptlang.org/docs/handbook/module-resolution.html) documentation for more details.
+见[模块解析](http://www.typescriptlang.org/docs/handbook/module-resolution.html)文档了解更多内容.
 
-#### Base URL
+#### 基准 URL
 
-Using a `baseUrl` is a common practice in applications using AMD module loaders where modules are "deployed" to a single folder at run-time.
-All module imports with non-relative names are assumed to be relative to the `baseUrl`.
+对于使用 AMD 模块加载器将模块在运行时 "部署" 到单个文件夹的应用来说, 使用 `baseUrl` 是一个通用的做法.
+所有没有相对名称的模块引用都被假设为相对 `baseUrl`.
 
 ##### 例子
 
@@ -518,43 +518,44 @@ All module imports with non-relative names are assumed to be relative to the `ba
 }
 ```
 
-Now imports to `"moduleA"` would be looked up in `./modules/moduleA`
+现在对 `"moduleA"` 的导入会查找 `./modules/moduleA`
 
 ```ts
 import A from "moduleA";
 ```
 
-#### Path mapping
+#### 路径映射
 
-Sometimes modules are not directly located under *baseUrl*.
-Loaders use a mapping configuration to map module names to files at run-time, see [RequireJs documentation](http://requirejs.org/docs/api.html#config-paths) and [SystemJS documentation](https://github.com/systemjs/systemjs/blob/master/docs/overview.md#map-config).
+有时模块没有直接在 *baseUrl* 中.
+加载器使用映射配置将模块名称与文件在运行时对应起来, 见 [RequireJS 文档](http://requirejs.org/docs/api.html#config-paths)和 [SystemJS 文档](https://github.com/systemjs/systemjs/blob/master/docs/overview.md#map-config).
 
-The TypeScript compiler supports the declaration of such mappings using `"paths"` property in `tsconfig.json` files.
+TypeScript 编译器支持在 `tsconfig.json` 里使用 `"path"` 属性来声明这样的映射.
 
 ##### 例子
 
-For instance, an import to a module `"jquery"` would be translated at runtime to `"node_modules\jquery\dist\jquery.slim.min.js"`.
+举例来说, 导入模块 `"jquery"` 会编译为运行时的 `"node_modules\jquery\dist\jquery.slim.min.js"`.
 
-```
+```json
 {
   "compilerOptions": {
     "paths": {
       "jquery": ["node_modules/jquery/dist/jquery.d.ts"]
     }
+  }
 }
 ```
 
-Using `"paths"` also allow for more sophisticated mappings including multiple fall back locations.
-Consider a project configuration where only some modules are available in one location, and the rest are in another.
+通过 `"path"` 还可以实现更多包括多级回落路径在内的高级映射.
+考虑一个部分模块在一个位置, 其他的在另一个位置的项目配置.
 
-#### Virtual Directories with `rootDirs`
+#### 使用 `rootDirs` 配置虚拟路径
 
-Using 'rootDirs', you can inform the compiler of the *roots* making up this "virtual" directory;
-and thus the compiler can resolve relative modules imports within these "virtual" directories *as if* were merged together in one directory.
+你可以使用 `rootDirs` 告知编译器组成这个 "虚拟" 路径的多个*根路径*;
+这样一来, 编译器会将这些 "虚拟" 目录中的相对模块引入*当做*它们是被合并到同一个目录下来解析.
 
 ##### 例子
 
-Given this project structure:
+假定项目结构如下:
 
 ```tree
  src
@@ -568,11 +569,11 @@ Given this project structure:
              └── template1.ts (imports './view2')
 ```
 
-A build step will copy the files in `/src/views` and `/generated/templates/views` to the same directory in the output.
-At run-time, a view can expect its template to exist next to it, and thus should import it using a relative name as `"./template"`.
+构建步骤会将 `/src/views` 和 `/generated/templates/views` 中的文件在输出中复制到同一目录.
+在运行时, 一个视图会期望它的模板在它旁边, 这样就应该使用相对的名称 `"./template"` 来导入它.
 
-`"rootDirs"` specify a list of *roots* whose contents are expected to merge at run-time.
-So following our example, the `tsconfig.json` file should look like:
+`"rootDirs"` 指定了将在运行时合并的*多个根目录*的列表.
+所以对于我们的例子, `tsconfig.json` 文件应该像这样:
 
 ```json
 {
@@ -585,9 +586,9 @@ So following our example, the `tsconfig.json` file should look like:
 }
 ```
 
-#### Tracing module resolution
+#### 追踪模块解析
 
-`--traceResolution` offers a handy way to understand how modules have been resolved by the compiler.
+`--traceResolution` 提供了一个方便的途径帮助理解模块是如何被编译器解析的.
 
 ```shell
 tsc --traceResolution
