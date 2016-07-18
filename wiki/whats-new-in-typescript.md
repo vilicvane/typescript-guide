@@ -775,7 +775,7 @@ class Derived extends Base {
 
 ### 隐式索引签名
 
-An object literal type is now assignable to a type with an index signature if all known properties in the object literal are assignable to that index signature. This makes it possible to pass a variable that was initialized with an object literal as parameter to a function that expects a map or dictionary:
+现在如果一个对象字面量中所有已知的属性可以赋值给一个索引签名, 那么这个对象字面量类型就可以赋值给有该索引签签名的类型. 这使得将使用对象字面量初始化的变量可以作为参数传递给接受映射或字典的函数:
 
 ```ts
 function httpService(path: string, headers: { [x: string]: string }) { }
@@ -784,18 +784,18 @@ const headers = {
     "Content-Type": "application/x-www-form-urlencoded"
 };
 
-httpService("", { "Content-Type": "application/x-www-form-urlencoded" });  // Ok
-httpService("", headers);  // Now ok, previously wasn't
+httpService("", { "Content-Type": "application/x-www-form-urlencoded" });  // 正确
+httpService("", headers);  // 现在可以, 过去不行
 ```
 
-### Including built-in type declarations with `--lib`
+### 使用 `--lib` 加入内建类型声明
 
-Getting to ES6/ES2015 built-in API declarations were only limited to `target: ES6`.
-Enter `--lib`; with `--lib` you can specify a list of built-in API declaration groups that you can chose to include in your project.
-For instance, if you expect your runtime to have support for `Map`, `Set` and `Promise` (e.g. most evergreen browsers today), just include `--lib es2015.collection,es2015.promise`.
-Similarly you can exclude declarations you do not want to include in your project, e.g. DOM if you are working on a node project using `--lib es5,es6`.
+过去使用 ES6/2015 的内建 API 声明仅限于 `target: ES6`.
+输入 `--lib`; 通过 `--lib` 你可以指定你希望在项目中包含的内建 API 声明组.
+举例来说, 如果你期望运行时支持 `Map`, `Set` 和 `Promise` (比如目前较新的浏览器), 只需要加入 `--lib es2015.collection,es2015.promise`.
+相似的, 你可以从你的项目中排除你不希望加入的声明, 比如在使用 `--lib es5,es6` 选项的 node 项目中排除 DOM.
 
-Here is a list of available API groups:
+这里列出了可选的 API 组:
 
 * dom
 * webworker
@@ -817,7 +817,6 @@ Here is a list of available API groups:
 * es2017.sharedmemory
 * scripthost
 
-
 ##### 例子
 
 ```bash
@@ -830,86 +829,85 @@ tsc --target es5 --lib es5,es6.promise
 }
 ```
 
-### Flag unused declarations with `--noUnusedParameters` and `--noUnusedLocals`
+### 使用 `--noUnusedParameters` 和 `--noUnusedLocals` 标记未使用的声明
 
-TypeScript 2.0 has two new flags to help you maintain a clean code base.
-`--noUnusedParameters` flags any unused function or method parameters errors.
-`--noUnusedLocals` flags any unused local (un-exported) declaration like variables, functions, classes, imports, etc...
-Also, unused private members of a class would be flagged as errors under `--noUnusedLocals`.
-
+TypeScript 2.0 提供了两个新的选项来帮助你维护代码的整洁.
+`--noUnusedParameters` 可以标记所有未使用的函数或方法参数为错误.
+`--noUnusedLocals` 可以标记所有未使用的本地 (未导出的) 声明, 比如变量, 函数, 类, 导入项等等.
+另外, 类中未使用的私有成员也会被 `--noUnusedLocals` 标记为错误.
 
 ##### 例子
 ```ts
 import B, { readFile } from "./b";
-//     ^ Error: `B` declared but never used
+//     ^ 错误: `B` 被声明但从未使用
 readFile();
 
 
 export function write(message: string, args: string[]) {
-    //                                 ^^^^  Error: 'arg' declared but never used.
+    //                                 ^^^^  错误: `arg` 被声明但从未使用
     console.log(message);
 }
 ```
 
-Parameters declaration with names starting with `_` are exempt from the unused parameter checking.
-e.g.:
+名称由 `_` 开头的参数声明不会被检查是否未使用.
+比如:
 
 ```ts
-function returnNull(_a) { // OK
+function returnNull(_a) { // 正确
     return null;
 }
 ```
 
-### Module identifiers allow for `.js` extension
+### 模块名称符允许 `.js` 扩展名
 
-Before TypeScript 2.0, a module identifier was always assumed to be extension-less;
-for instance, given an import as `import d from "./moduleA.js"`, the compiler looked up the definition of `"moduleA.js"` in `./moduleA.js.ts` or `./moduleA.js.d.ts`.
-This made it hard to use bundling/loading tools like (SystemJS)[https://github.com/systemjs/systemjs] that expect URI's in their module identifier.
+在 TypeScript 2.0 之前, 模块名称一直被假设是没有扩展名的;
+举例来说, 对于模块导入 `import d from "./moduleA.js"`, 编译器会到 `./moduleA.js.ts` 或 `./moduleA.js.d.ts` 中查找 `"moduleA.js"` 的声明.
+这让使用像 (SystemJS)[https://github.com/systemjs/systemjs] 这样期望模块名是 URI 的打包/加载工具变得不方便.
 
-With TypeScript 2.0, the compiler will look up definition of `"moduleA.js"` in  `./moduleA.ts` or `./moduleA.d.t`.
+对于 TypeScript 2.0, 编译器会到 `./moduleA.ts` 或 `./moduleA.d.ts` 中查找 `"moduleA.js"` 的声明.
 
-### Support 'target : es5' with 'module: es6'
+### 支持同时使用 `target : es5` 和 `module: es6`
 
-Previously flagged as an invalid flag combination, `target: es5` and 'module: es6' is now supported.
-This should facilitate using ES2015-based tree shakers like [rollup](https://github.com/rollup/rollup).
+之前这被认为是不合法的选项组合, 现在 `target : es5` 和 `module: es6` 可以一并使用了.
+这可以方便使用基于 ES2015 的冗余代码清理工具, 比如 [rollup](https://github.com/rollup/rollup).
 
-### Trailing commas in function parameter and argument lists
+### 函数形参和实参列表结尾处的逗号
 
-Trailing comma in function parameter and argument lists are now allowed.
-This is an implementation for a [Stage-3 ECMAScript proposal](https://jeffmo.github.io/es-trailing-function-commas/) that emits down to valid ES3/ES5/ES6.
+现在允许了函数形参和实参列表结尾处的逗号.
+这是一个[第三阶段的 ECMAScript 提议](https://jeffmo.github.io/es-trailing-function-commas/)对应的实现, 并且会编译为可用的 ES3/ES5/ES6.
 
 ##### 例子
 ```ts
 function foo(
   bar: Bar,
-  baz: Baz, // trailing commas are OK in parameter lists
+  baz: Baz, // 形参列表可以以逗号结尾
 ) {
-  // Implementation...
+  // 实现...
 }
 
 foo(
   bar,
-  baz, // and in argument lists
+  baz, // 实参列表也可以
 );
 ```
 
-### New `--skipLibCheck`
+### 新的 `--skipLibCheck`
 
-TypeScript 2.0 adds a new `--skipLibCheck` compiler option that causes type checking of declaration files (files with extension `.d.ts`) to be skipped.
-When a program includes large declaration files, the compiler spends a lot of time type checking declarations that are already known to not contain errors, and compile times may be significantly shortened by skipping declaration file type checks.
+TypeScript 2.0 添加了一个新的 `--skipLibCheck` 编译器选项来跳过对声明文件 (扩展名为 `.d.ts` 的文件) 的类型检查.
+当程序包含了大的声明文件时, 编译器会划掉很多时间对这些已知没有错误的声明进行类型检查, 跳过这些声明文件的类型检查能够显著缩短编译时间.
 
-Since declarations in one file can affect type checking in other files, some errors may not be detected when `--skipLibCheck` is specified.
-For example, if a non-declaration file augments a type declared in a declaration file, errors may result that are only reported when the declaration file is checked.
-However, in practice such situations are rare.
+由于一个文件中的声明可能影响其他文件中的类型检查, 指定 `--skipLibCheck` 可能导致一些错误无法被检测到.
+比如说, 如果一个非声明文件中的类型被声明文件用到, 错误可能仅在声明文件被检查时能被发现.
+不过这种情况在实际使用中并不常见.
 
-### Allow duplicate identifiers across declarations
+### 支持多个声明中出现重复的标示符
 
-This has been one common source of duplicate definition errors.
-Multiple declaration files defining the same members on interfaces.
+这是造成重复定义错误的常见原因之一.
+多个声明文件在接口中定义了同样的成员.
 
-TypeScript 2.0 relaxes this constraint and allows duplicate identifiers across blocks, as long as they have *identical* types.
+TypeScript 2.0 放宽了相关约束并允许不同代码块中出现重复的标示符, 只要它们的类型*等价*.
 
-Within the same block duplicate definitions are still disallowed.
+在同一个代码块中的重复定义依然是不被允许的.
 
 ##### 例子
 
@@ -918,18 +916,17 @@ interface Error {
     stack?: string;
 }
 
-
 interface Error {
     code?: string;
     path?: string;
-    stack?: string;  // OK
+    stack?: string;  // 正确
 }
 
 ```
 
-### New `--declarationDir`
+### 新的 `--declarationDir`
 
-`--declarationDir` allows for generating declaration files in a different location than JavaScript files.
+`--declarationDir` 允许将声明文件生成到和 JavaScript 文件不同的位置.
 
 
 ## TypeScript 1.8
