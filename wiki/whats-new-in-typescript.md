@@ -4,7 +4,7 @@
 
 ## TypeScript 2.0
 
-### 能理解 null 和 undefined 的类型<sup>[1]</sup>
+### 编译器理解 null 和 undefined 类型<sup>[1]</sup>
 
 TypeScript 有两个特殊的类型, Null 和 Undefined, 他们分别对应了值 `null` 和 `undefined`. 过去这些类型没有明确的名称, 但 `null` 和 `undefined` 现在可以在任意类型检查模式下作为类型名称使用.
 
