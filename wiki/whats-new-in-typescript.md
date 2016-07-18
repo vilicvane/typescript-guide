@@ -862,7 +862,7 @@ function returnNull(_a) { // 正确
 
 在 TypeScript 2.0 之前, 模块名称一直被假设是没有扩展名的;
 举例来说, 对于模块导入 `import d from "./moduleA.js"`, 编译器会到 `./moduleA.js.ts` 或 `./moduleA.js.d.ts` 中查找 `"moduleA.js"` 的声明.
-这让使用像 (SystemJS)[https://github.com/systemjs/systemjs] 这样期望模块名是 URI 的打包/加载工具变得不方便.
+这让使用像 [SystemJS](https://github.com/systemjs/systemjs) 这样期望模块名是 URI 的打包/加载工具变得不方便.
 
 对于 TypeScript 2.0, 编译器会到 `./moduleA.ts` 或 `./moduleA.d.ts` 中查找 `"moduleA.js"` 的声明.
 
