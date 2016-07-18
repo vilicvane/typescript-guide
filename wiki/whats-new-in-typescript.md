@@ -866,9 +866,9 @@ function returnNull(_a) { // 正确
 
 对于 TypeScript 2.0, 编译器会到 `./moduleA.ts` 或 `./moduleA.d.ts` 中查找 `"moduleA.js"` 的声明.
 
-### 支持同时使用 `target : es5` 和 `module: es6`
+### 支持同时使用 `target: es5` 和 `module: es6`
 
-之前这被认为是不合法的选项组合, 现在 `target : es5` 和 `module: es6` 可以一并使用了.
+之前这被认为是不合法的选项组合, 现在 `target: es5` 和 `module: es6` 可以一并使用了.
 这可以方便使用基于 ES2015 的冗余代码清理工具, 比如 [rollup](https://github.com/rollup/rollup).
 
 ### 函数形参和实参列表结尾处的逗号
