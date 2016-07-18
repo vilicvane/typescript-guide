@@ -454,7 +454,7 @@ uiElement.addClickListener(h.onClickBad); // 错误!
 
 ### `tsconfig.json` 对 glob 的支持
 
-支持 glob 啦!! 对 glob 的支持一直是 [请求最多的特性之一](https://github.com/Microsoft/TypeScript/issues/1927).
+支持 glob 啦!! 对 glob 的支持一直是[请求最多的特性之一](https://github.com/Microsoft/TypeScript/issues/1927).
 
 类似 glob 的文件匹配模板现在被 `"include"` 和 `"exclude"` 两个属性支持.
 
