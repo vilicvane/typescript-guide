@@ -654,7 +654,7 @@ declare module "myLibrary\*";
 这样, 对于这些模块的外形或类型的检查都会被关闭.
 
 ```ts
-import { readFile } from "myLibrary\fileSystem\readFile`;
+import { readFile } from "myLibrary\fileSystem\readFile";
 
 readFile(); // readFile 的类型是 any
 ```
