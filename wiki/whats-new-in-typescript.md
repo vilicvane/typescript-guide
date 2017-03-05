@@ -1,6 +1,200 @@
 # TypeScript 新增特性一览
 
-由 [vilicvane](https://github.com/vilic) 译自 [TypeScript Wiki](https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript/846ffa8a58f78b0e18dfe86cd32078366192d3cd).
+由 [vilicvane](https://github.com/vilic) 译自 [TypeScript Wiki](https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript/dddd7f45efe4785154657829065f824914fc28a4).
+
+## TypeScript 2.2
+
+### 支持混合 (Mix-in) 类
+
+TypeScript 2.2 增加了对 ECMAScript 2015 混合类模式 (见 [MDN 混合类的描述](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes#Mix-ins) 及 [JavaScript 类的 "真" 混合](http://justinfagnani.com/2015/12/21/real-mixins-with-javascript-classes/) 了解更多) 以及使用交叉来类型表达结合混合构造函数的签名及常规构造函数签名的规则.
+
+#### 首先是一些术语:
+
+- **混合构造函数类型**指仅有单个构造函数签名, 且该签名仅有一个类型为 `any[]` 的变长参数, 返回值为对象类型. 比如, 有 `X` 为对象类型, `new (...args: any[]) => X` 是一个实例类型为 `X` 的混合构造函数类型.
+
+- **混合类**指一个 `extends` (扩展) 了类型参数类型的表达式的类声明或表达式<sup>[1]</sup>. 以下规则对混合类声明适用:
+  - `extends` 表达式的类型参数类型必须是混合构造函数.
+  - 混合类的构造函数 (如果有) 必须有且仅有一个类型为 `any[]` 的变长参数, 并且必须使用展开运算符在 `super(...args)` 调用中将这些参数传递.
+
+假设有类型参数为 `T` 且约束为 `X` 的表达式 `Base`, 处理混合类 `class C extends Base {...}` 时会假设 `Base` 有 `X` 类型, 处理结果为交叉类型 `typeof C & T`. 换言之, 一个混合类被表达为混合类构造函数类型与参数基类构造函数类型的交叉类型.
+
+在获取一个包含了混合构造函数类型的交叉类型的构造函数签名时, 混合构造函数签名会被丢弃, 而它们的实例类型会被混合到交叉类型中其他构造函数签名的返回类型中. 比如, 交叉类型 `{ new(...args: any[]) => A } & { new(s: string) => B }` 仅有一个构造函数签名 `new(s: string) => A & B`.
+
+#### 将以上规则放到一个例子中:
+
+```ts
+class Point {
+    constructor(public x: number, public y: number) {}
+}
+
+class Person {
+    constructor(public name: string) {}
+}
+
+type Constructor<T> = new(...args: any[]) => T;
+
+function Tagged<T extends Constructor<{}>>(Base: T) {
+    return class extends Base {
+        _tag: string;
+        constructor(...args: any[]) {
+            super(...args);
+            this._tag = "";
+        }
+    }
+}
+
+const TaggedPoint = Tagged(Point);
+
+let point = new TaggedPoint(10, 20);
+point._tag = "你好";
+
+class Customer extends Tagged(Person) {
+    accountBalance: number;
+}
+
+let customer = new Customer("张三");
+customer._tag = "测试";
+customer.accountBalance = 0;
+```
+
+混合类可以通过在类型参数中限定构造函数签名的返回值类型来限制它们可以被混入的类的类型. 举例来说, 下面的 `WithLocation` 函数实现了一个为满足 `Point` 接口 (也就是有类型为 `number` 的 `x` 和 `y` 属性) 的类添加 `getLocation` 方法的子类工厂.
+
+```ts
+interface Point {
+    x: number;
+    y: number;
+}
+
+const WithLocation = <T extends Constructor<Point>>(Base: T) =>
+    class extends Base {
+        getLocation(): [number, number] {
+            return [this.x, this.y];
+        }
+    }
+```
+
+### `object` 类型
+
+TypeScript 之前没有一个用来表示非原始类型, 也就是非 `number` | `string` | `boolean` | `symbol` | `null` | `undefined` 的类型. 进入新的 `object` 类型.
+
+有了 `object` 类型, `Object.create` 这样的 API 可以被更好地表达. 比如:
+
+```ts
+declare function create(o: object | null): void;
+
+create({ prop: 0 }); // 正确
+create(null); // 正确
+
+create(42); // 错误
+create("string"); // 错误
+create(false); // 错误
+create(undefined); // 错误
+```
+
+### 对 `new.target` 的支持
+
+`new.target` 元属性是 ES2015 中引入的新语法. 当一个构造函数的实例通过 `new` 被创建时, `new.target` 被设置为到最初被用来配置这个实例的构造函数的引用. 如果一个函数是被调用而不是通过 `new` 来构造, `new.target` 则被设置为 `undefined`.
+
+`new.target` 在类的构造函数中需要 `Object.setPrototypeOf` 或者设置 `__proto__` 时很有用. 一个具体的例子则是从 Node.js v4 及更高版本中继承 `Error`.
+
+#### 例子
+
+```ts
+class CustomError extends Error {
+    constructor(message?: string) {
+        super(message); // 'Error' 会改变原型链
+        Object.setPrototypeOf(this, new.target.prototype); // 恢复原型链
+    }
+}
+```
+
+生成的 JS
+
+```js
+var CustomError = (function (_super) {
+  __extends(CustomError, _super);
+  function CustomError() {
+    var _newTarget = this.constructor;
+    var _this = _super.apply(this, arguments);  // 'Error' 会改变原型链
+    _this.__proto__ = _newTarget.prototype; // 恢复原型链
+    return _this;
+  }
+  return CustomError;
+})(Error);
+```
+
+在编写可构建的函数时, 使用 `new.target` 也很方便, 比如:
+
+```ts
+function f() {
+  if (new.target) { /* 通过 'new' 来调用 */ }
+}
+```
+
+会被编译为:
+
+```js
+function f() {
+  var _newTarget = this && this instanceof f ? this.constructor : void 0;
+  if (_newTarget) { /* 通过 'new' 来调用 */ }
+}
+```
+
+### 更好地检查表达式操作数中的 `null`/`undefined`
+
+TypeScript 2.2 改进了对表达式中可空的操作数的检查. 具体来说, 下面的例子现在会被标记为错误:
+
+- 如果 `+` 运算符的任意操作数为可空的, 且没有任何一个操作数的类型为 `any` 或 `string`.
+- 如果 `-`, `*`, `**`, `/`, `%`, `<<`, `>>`, `>>>`, `&`, `|`, 或 `^` 运算符的任意操作数为可空的.
+- 如果 `<`, `>`, `<=`, `>=`, 或 `in` 运算符的任意操作数为可空的.
+- 如果 `instanceof` 运算符的右操作数为可空的.
+- 如果 `+`, `-`, `~`, `++`, 或 `--` 一元运算符的操作数为可空的.
+
+如果一个操作数的类型是 `null` 或 `undefined` 或包含 `null` 或 `undefined` 的联合类型, 那么这个操作数被认为是可空的. 注意联合类型的情况只会在 `--strictNullChecks` 时存在, 因为在普通类型检查模式下 `null` 和 `undefined` 会从联合类型中消失掉.
+
+### 有字符串索引签名类型的点属性
+
+有字符串索引签名的类型可以使用 `[]` 符号来索引, 但之前不能使用 `.` 来访问. 从 TypeScript 2.2 开始, 两种方式都被允许.
+
+```ts
+interface StringMap<T> {
+    [x: string]: T;
+}
+
+const map: StringMap<number>;
+
+map["prop1"] = 1;
+map.prop2 = 2;
+
+```
+
+这一项只会被应用到具备*显式*字符串索引签名的类型. 使用 `.` 符号来访问一个类型的未知属性依然会报错.
+
+### 支持在对 JSX 子元素使用展开运算符
+
+TypeScript 2.2 添加了对 JSX 子元素使用展开运算符的支持. 请参考 [facebook/jsx#57](https://github.com/facebook/jsx/issues/57) 了解详情.
+
+#### 例子
+
+```ts
+function Todo(prop: { key: number, todo: string }) {
+    return <div>{prop.key.toString() + prop.todo}</div>;
+}
+
+function TodoList({ todos }: TodoListProps) {
+    return <div>
+        {...todos.map(todo => <Todo key={todo.id} todo={todo.todo} />)}
+    </div>;
+}
+
+let x: TodoListProps;
+
+<TodoList {...x} />
+```
+
+### 新的 `jsx: react-native`
+
+React-native 的构建过程需要所有文件的扩展名都为 `.js`, 即使这个文件包含了 JSX 语法. 新的 `--jsx` 选项值 `react-native` 将会在生成的文件中保留 JSX 语法, 但使用 `.js` 扩展名.
 
 ## TypeScript 2.1
 
@@ -522,7 +716,7 @@ TypeScript 2.1 支持通过 `extends` 来继承配置, 在这儿:
 
 ## TypeScript 2.0
 
-### 编译器理解 null 和 undefined 类型<sup>[1]</sup>
+### 编译器理解 null 和 undefined 类型<sup>[2]</sup>
 
 TypeScript 有两个特殊的类型, Null 和 Undefined, 他们分别对应了值 `null` 和 `undefined`. 过去这些类型没有明确的名称, 但 `null` 和 `undefined` 现在可以在任意类型检查模式下作为类型名称使用.
 
@@ -2218,7 +2412,7 @@ f2({ x: 1, y: 1 });
 
 ### 装饰器 (decorators) 支持的编译目标版本增加 ES3
 
-装饰器现在可以编译到 ES3. TypeScript 1.7 在 `__decorate` 函数中移除了 ES5 中增加的 `reduceRight`. 相关改动也内联了对 `Object.getOwnPropertyDescriptor` 和 `Object.defineProperty` 的调用, 并向后兼容, 使 ES5 的输出可以消除前面提到的 `Object` 方法的重复<sup>[2]</sup>.
+装饰器现在可以编译到 ES3. TypeScript 1.7 在 `__decorate` 函数中移除了 ES5 中增加的 `reduceRight`. 相关改动也内联了对 `Object.getOwnPropertyDescriptor` 和 `Object.defineProperty` 的调用, 并向后兼容, 使 ES5 的输出可以消除前面提到的 `Object` 方法的重复<sup>[3]</sup>.
 
 ## TypeScript 1.6
 
@@ -2570,7 +2764,7 @@ class C {
 
 ### 每天发布新版本
 
-由于并不算严格意义上的语言变化<sup>[3]</sup>, 每天的新版本可以使用如下命令安装获得:
+由于并不算严格意义上的语言变化<sup>[4]</sup>, 每天的新版本可以使用如下命令安装获得:
 
 ```sh
 npm install -g typescript@next
@@ -3321,8 +3515,10 @@ module MyControllers {
 
 ---
 
-**[1]** 原文为 "Null- and undefined-aware types"
+**[1]** 原文为 "A **mixin class** is a class declaration or expression that `extends` an expression of a type parameter type."
 
-**[2]** 原文为 "The changes also inline calls `Object.getOwnPropertyDescriptor` and `Object.defineProperty` in a backwards-compatible fashion that allows for a to clean up the emit for ES5 and later by removing various repetitive calls to the aforementioned `Object` methods."
+**[2]** 原文为 "Null- and undefined-aware types"
 
-**[3]** 原文为 "While not strictly a language change..."
+**[3]** 原文为 "The changes also inline calls `Object.getOwnPropertyDescriptor` and `Object.defineProperty` in a backwards-compatible fashion that allows for a to clean up the emit for ES5 and later by removing various repetitive calls to the aforementioned `Object` methods."
+
+**[4]** 原文为 "While not strictly a language change..."
