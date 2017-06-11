@@ -70,7 +70,7 @@ interface AsyncIterator<T> {
 
 一个支持异步迭代的对象如果有一个返回 `AsyncIterator` 对象的 `Symbol.asyncIterator` 方法, 被称作是 "可迭代的".
 
-#### 一部生成器
+#### 异步生成器
 
 [异步迭代提案](https://github.com/tc39/proposal-async-iteration)引入了 "异步生成器", 也就是可以用来生成部分计算结果的异步函数. 异步生成器也可以通过 `yield*` 代理对可迭代对象或异步可迭代对象的调用:
 
