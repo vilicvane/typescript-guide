@@ -23,12 +23,12 @@ interface Iterator<T> {
 这一类迭代器在迭代同步可用的值时很有用, 比如数组的元素或者 Map 的键.
 如果一个对象有一个返回 `Iterator` 对象的 `Symbol.iterator` 方法, 那么我们说这个对象支持迭代.
 
-迭代器的协议也定义了一些像 `for...of` 和展开运算符以及解构赋值中的数组的剩余运算的操作对象.
+迭代器的协议也定义了一些像 `for..of` 和展开运算符以及解构赋值中的数组的剩余运算的操作对象.
 
 #### 生成器
 
 [ES2015 也引入了 "生成器"](http://www.ecma-international.org/ecma-262/6.0/#sec-generatorfunction-objects), 生成器是可以通过 `Iterator` 接口和 `yield` 关键字被用来生成部分运算结果的函数.
-生成器也可以在内部通过 `yield *` 代理对与其他可迭代对象的调用. 举例来说:
+生成器也可以在内部通过 `yield*` 代理对与其他可迭代对象的调用. 举例来说:
 
 ```ts
 function* f() {
@@ -40,7 +40,7 @@ function* f() {
 #### 新的 `--downlevelIteration` 选项
 
 之前迭代器只在编译目标为 ES6/ES2015 或者更新版本时可用.
-此外, 设计迭代器协议的结构, 比如 `for...of`, 如果编译目标低于 ES6/ES2015, 则只能在操作数组时被支持.
+此外, 设计迭代器协议的结构, 比如 `for..of`, 如果编译目标低于 ES6/ES2015, 则只能在操作数组时被支持.
 
 TypeScript 2.3 在 ES3 和 ES5 为编译目标时由 `--downlevelIteration` 选项增加了完整的对生成器和迭代器协议的支持.
 
@@ -86,12 +86,12 @@ async function* g() {
 }
 ```
 
-和生成器一样, 异步生成器只能是函数声明, 函数表达式, 或者类或对象字面量的方法. 箭头函数不能作为异步生成器. 异步生成器除了一个可用的 `Symbol.asyncIterator` 引用外 (原生或三方实现), 还需要一个可用的全局 `Promise` 实现 (既可以是原生的, 也可以是 ES2015 兼容的实现), 以及
+和生成器一样, 异步生成器只能是函数声明, 函数表达式, 或者类或对象字面量的方法. 箭头函数不能作为异步生成器. 异步生成器除了一个可用的 `Symbol.asyncIterator` 引用外 (原生或三方实现), 还需要一个可用的全局 `Promise` 实现 (既可以是原生的, 也可以是 ES2015 兼容的实现).
 
-#### `for-await-of` 语句
+#### `for await..of` 语句
 
 最后, ES2015 引入了 `for..of` 语句来迭代可迭代对象.
-相似的, 异步迭代提案引入了 `for..await..of` 语句来迭代可异步迭代的对象.
+相似的, 异步迭代提案引入了 `for await..of` 语句来迭代可异步迭代的对象.
 
 ```ts
 async function f() {
@@ -101,13 +101,13 @@ async function f() {
 }
 ```
 
-`for..await..of` 语句仅在异步函数或异步生成器中合法.
+`for await..of` 语句仅在异步函数或异步生成器中可用.
 
 #### 注意事项
 
 - 始终记住我们对于异步迭代器的支持是建立在运行时有 `Symbol.asyncIterator` 支持的基础上的.
 你可能需要 `Symbol.asyncIterator` 的三方实现, 虽然对于简单的目的可以仅仅是: `(Symbol as any).asyncIterator = Symbol.asyncIterator || Symbol.from("Symbol.asyncIterator");`
-- 如果你没有声明 `AsyncIterator`, 还需要在 `--lib` 选项中加入 `esnext` 来获取.
+- 如果你没有声明 `AsyncIterator`, 还需要在 `--lib` 选项中加入 `esnext` 来获取 `AsyncIterator` 声明.
 - 最后, 如果你的编译目标是 ES5 或 ES3, 你还需要设置 `--downlevelIterators` 选项.
 
 ### 泛型参数默认类型
@@ -142,7 +142,7 @@ declare function create<T extends HTMLElement = HTMLDivElement, U = T[]>(element
 
 ### 新的 `--strict` 模板选项
 
-加入 TypeScript 的新检查项为了避免不兼容现有项目通常都是默认关闭的. 虽然避免不兼容是好事, 但这个策略的一个弊端则是使配置最高类型安全越来越复杂, 这么做每次 TypeScript 版本发布时都需要显示地加入新选项. 有了 `--strict` 选项, 就可以选择最高级别的类型安全 (了解随着更新版本的编译器增加了增强的类型检查特性可能会报新的错误).
+TypeScript 加入的新检查项为了避免不兼容现有项目通常都是默认关闭的. 虽然避免不兼容是好事, 但这个策略的一个弊端则是使配置最高类型安全越来越复杂, 这么做每次 TypeScript 版本发布时都需要显示地加入新选项. 有了 `--strict` 选项, 就可以选择最高级别的类型安全 (了解随着更新版本的编译器增加了增强的类型检查特性可能会报新的错误).
 
 新的 `--strict` 编译器选项包含了一些建议配置的类型检查选项. 具体来说, 指定 `--strict` 相当于是制订了以下所有选项 (未来还可能包括更多选项):
 
@@ -157,7 +157,7 @@ declare function create<T extends HTMLElement = HTMLDivElement, U = T[]>(element
 --strict --noImplicitThis false
 ```
 
-的效果是开启除了 `--noImplicitThis` 选项意外的严格检查选项. 使用这个方式可以表述除某些明确列出的项以外的*所有*严格检查项. 换句话说, 现在可以在默认最高级别的类型安全下排除部分检查.
+的效果是开启除了 `--noImplicitThis` 选项以外的严格检查选项. 使用这个方式可以表述除某些明确列出的项以外的*所有*严格检查项. 换句话说, 现在可以在默认最高级别的类型安全下排除部分检查.
 
 从 TypeScript 2.3 开始, `tsc --init` 生成的默认 `tsconfig.json` 在 `"compilerOptions"` 中包含了 `"strict: true"` 设置. 这样一来, 用 `tsc --init` 创建的新项目默认会开启最高级别的类型安全.
 
@@ -169,11 +169,11 @@ declare function create<T extends HTMLElement = HTMLDivElement, U = T[]>(element
 
 即便使用了 `--allowJs`, TypeScript 编译器默认不会报 .js 文件中的任何错误. TypeScript 2.3 中使用 `--checkJs` 选项, `.js` 文件中的类型检查错误也可以被报出.
 
-你可以通过为它们添加 `// @ts-nocheck` 注释来跳过对某些文件的检查; 反过来你也可以选择通过添加 `// @ts-check` 注释只检查一些 `.js` 文件而不需要设置 `--checkJs` 选项. 你也可以通过添加 `// @ts-ignore` 到特定行的前一行来忽略这一行的错误.
+你可以通过为它们添加 `// @ts-nocheck` 注释来跳过对某些文件的检查; 反过来你也可以选择通过添加 `// @ts-check` 注释只检查一些 `.js` 文件而不需要设置 `--checkJs` 选项. 你也可以通过添加 `// @ts-ignore` 到特定行的一行前来忽略这一行的错误.
 
-`.js` 文件仍然会被检查确保只有标准的 ECMAScript 特性; 类型标注仅在 `.ts` 文件中被允许, 在 `.js` 中会被标记为错误. JSDoc 注释可以用来为你的 JavaScript 代码添加某些类型信息, 见 [JSDoc 支持文档](https://github.com/Microsoft/TypeScript/wiki/JSDoc-support-in-JavaScript) 了解更多关于支持的 JSDoc 构造的详情.
+`.js` 文件仍然会被检查确保只有标准的 ECMAScript 特性; 类型标注仅在 `.ts` 文件中被允许, 在 `.js` 中会被标记为错误. JSDoc 注释可以用来为你的 JavaScript 代码添加某些类型信息, 见 [JSDoc 支持文档](https://github.com/Microsoft/TypeScript/wiki/JSDoc-support-in-JavaScript)了解更多关于支持的 JSDoc 构造的详情.
 
-见 [对 JavaScript 文件进行类型检查](https://github.com/Microsoft/TypeScript/wiki/Type-Checking-JavaScript-Files) 了解更多详情.
+见[对 JavaScript 文件进行类型检查](https://github.com/Microsoft/TypeScript/wiki/Type-Checking-JavaScript-Files)了解更多详情.
 
 ## TypeScript 2.2
 
