@@ -1,6 +1,172 @@
 # TypeScript 新增特性一览
 
-由 [vilicvane](https://github.com/vilic) 译自 [TypeScript Wiki](https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript/a2c6cbb2d4edfd27ef8ce48f0f66ecc64f20f516).
+由 [vilicvane](https://github.com/vilic) 译自 [TypeScript Wiki](https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript/6055fdd5a025ff392f38f5c71280824af0f95508).
+
+## TypeScript 2.4
+
+### 动态导入 (import) 表达式
+
+动态 `import` 表达式是 ECMAScript 的新特性之一, 它让用户可以在程序的任意位置异步地请求一个模块.
+
+这意味着你可以在条件恰当的情况下延迟加载其他模块和库.
+举例来说, 下面的 `async` 函数在需要的时候才会导入一个工具库:
+
+```ts
+async function getZipFile(name: string, files: File[]): Promise<File> {
+    const zipUtil = await import('./utils/create-zip-file');
+    const zipContents = await zipUtil.getContentAsBlob(files);
+    return new File(zipContents, name);
+}
+```
+
+很多打包工具支持基于这样的 `import` 表达式自动将结果分割, 所以可以考虑搭配 `esnext` 编译目标来使用这一新功能.
+
+### 字符串枚举值
+
+TypeScript 2.4 现在支持枚举成员中包含字符串初始化器.
+
+```ts
+enum Colors {
+    Red = "RED",
+    Green = "GREEN",
+    Blue = "BLUE",
+}
+```
+
+使用字符串来初始化的枚举值的一个弊端是不能使用反向映射来获取原来的枚举成员名称.
+换句话说, 你不能通过写 `Colors["RED"]` 来获得字符串 `"Red"`.
+
+### 改进的泛型推断
+
+TypeScript 2.4 围绕泛型推断的方法引入了一些非常棒的变化.
+
+#### 将返回类型作为推断目标
+
+其一, TypeScript 现在可以对函数调用的返回值进行推断.
+这可以提升你的使用体验并捕获更多错误.
+一个现在可以使用的例子:
+
+```ts
+function arrayMap<T, U>(f: (x: T) => U): (a: T[]) => U[] {
+    return a => a.map(f);
+}
+
+const lengths: (a: string[]) => number[] = arrayMap(s => s.length);
+```
+
+另一个你可能会遇上的错误的例子:
+
+```ts
+let x: Promise<string> = new Promise(resolve => {
+    resolve(10);
+    //      ~~ 错误!
+});
+```
+
+#### 从包含上下文的类型推断类型参数
+
+在 TypeScript 2.4 之前, 在下面的例子中:
+
+```ts
+let f: <T>(x: T) => T = y => y;
+```
+
+`y` 的类型会是 `any`.
+这意味着虽然程序会进行类型检查, 但技术上讲你可以对 `y` 做任何事, 比如下面的:
+
+```ts
+let f: <T>(x: T) => T = y => y() + y.foo.bar;
+```
+
+最后一个例子并不是真正类型安全的.
+
+在 TypeScript 2.4 中, 右侧的函数隐式地*获得了*类型参数, 然后 `y` 被推断出具有类型参数的类型.
+
+如果你以一种类型参数的约束不允许的方式来使用 `y`, 你会像预期一样得到一个错误.
+在这个例子中, 对于 `T` 的约束是 `{}` (隐式地), 所以最后一个例子会按照预期给出错误.
+
+#### 对泛型函数更严格的检查
+
+TypeScript 现在会在比较两个单签名的类型时尝试去统一类型参数.
+作为结果, 你会在与两个泛型签名相关的情况下获得更严格的检查, 然后或许会发现一些 bug.
+
+```ts
+type A = <T, U>(x: T, y: U) => [T, U];
+type B = <S>(x: S, y: S) => [S, S];
+
+function f(a: A, b: B) {
+    a = b;  // 错误
+    b = a;  // 正确
+}
+```
+
+### 回调参数的严格逆变
+
+TypeScript 始终使用一个双变的方式来比较参数.
+这么做有不少原因, 但是在过去这对我们的用户来说并不是个大问题, 直到我们看到了它在 `Promise` 和 `Observable` 使用中带来的不利影响.
+
+当关联两个回调类型时, TypeScript 2.4 会收紧这种比较. 举例来说:
+
+```ts
+interface Mappable<T> {
+    map<U>(f: (x: T) => U): Mappable<U>;
+}
+
+declare let a: Mappable<number>;
+declare let b: Mappable<string | number>;
+
+a = b;
+b = a;
+```
+
+在 TypeScript 之前, 这个例子能成功编译.
+当关联 `map` 的类型时, TypeScript 会双向关联它们的参数 (也就是 `f` 的类型).
+当关联每一个 `f` 时, TypeScript 又会双向关联*这些*参数的类型.
+
+在 TS 2.4 中当关联 `map` 的类型时, 这门语言会检查是否每个参数都是回调类型, 如果是, 它会确保这些参数在考虑当前关系的情况下会以逆变的方式被检查.
+
+换言之, TypeScript 现在可以捕获上述的 bug, 虽然这对于一些用户来说可能会是一个不兼容的改变, 但能带来的好处会更多.
+
+### 弱类型检测
+
+TypeScript 2.4 引入了 "弱类型" 的概念.
+任何全部属性都可选的类型被认为是*弱类型*.
+比如, 下面的 `Options` 类型就是一个弱类型:
+
+```ts
+interface Options {
+    data?: string,
+    timeout?: number,
+    maxRetries?: number,
+}
+```
+
+在 TypeScript 2.4 中, 把任何没有重合属性的值赋给一个弱类型将会报错.
+举例来说:
+
+```ts
+function sendMessage(options: Options) {
+    // ...
+}
+
+const opts = {
+    payload: "hello world!",
+    retryOnFail: true,
+}
+
+// 错误!
+sendMessage(opts);
+// 'opts' 的类型和 'Options' 间没有重合的部分.
+// 或许我们是想用 'data'/'maxRetries' 而不是 'payload'/'retryOnFail'.
+```
+
+你可以把这理解为 TypeScript 增强了这些类型的羸弱的保障, 来捕获本来无法找到的 bug.
+
+由于这是一个破坏兼容性的改变, 你可能需要知道相关的处理方法, 这个方法和针对严格对象字面量检查的方法一样.
+
+1. 声明确实存在的属性.
+2. 为弱类型添加一个索引签名 (也就是 `[propName: string]: {}`).
+3. 使用类型断言 (也就是 `opts as Options`).
 
 ## TypeScript 2.3
 
