@@ -157,7 +157,7 @@ c:\ts>tsc --locale ru --pretty c:\test\a.ts
 PS C:\ts> tsc --v
 Version 2.6.1
 
-PS C:\ts> tsc --locale ja-jp
+PS C:\ts> tsc --locale zh-cn
 版本 2.6.1
 语法: tsc [选项] [文件 ...]
 
