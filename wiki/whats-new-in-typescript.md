@@ -1,39 +1,38 @@
 # TypeScript 新增特性一览
 
-译自 [TypeScript Wiki](https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript/6490a2649656495069a852dfc37db2d0db37b454).
+译自 [TypeScript Wiki](https://github.com/Microsoft/TypeScript/wiki/What's-new-in-TypeScript/0908f26468460e0a1fc66e9151c5971853d27140).
 
 ## TypeScript 2.6
 
-### Strict function types
+### 严格函数类型
 
-TypeScript 2.6 introduces a new strict checking flag, `--strictFunctionTypes`.
-The `--strictFunctionTypes` switch is part of the `--strict` family of switches, meaning that it defaults to on in `--strict` mode.
-You can opt-out by setting `--strictFunctionTypes false` on your command line or in your tsconfig.json.
+TypeScript 2.6 引入了新的类型检查选项, `--strictFunctionTypes`.
+`--strictFunctionTypes` 选项是 `--strict` 系列选项之一, 也就是说 `--strict` 模式下它默认是启用的.
+你可以通过在命令行或 tsconfig.json 中设置 `--strictFunctionTypes false` 来单独禁用它.
 
-Under `--strictFunctionTypes` function type parameter positions are checked _contravariantly_ instead of _bivariantly_.
-For some background on what variance means for function types check out [What are covariance and contravariance?](https://www.stephanboyer.com/post/132/what-are-covariance-and-contravariance).
+`--strictFunctionTypes` 启用时, 函数类型参数的检查是_逆变_（contravariantly）而非_双变_（bivariantly）的. 关于变型 (variance) 对与函数类型意义的相关背景, 请查看 [协变（covariance）和逆变（contravariance）是什么?](https://www.stephanboyer.com/post/132/what-are-covariance-and-contravariance).
 
-The stricter checking applies to all function types, *except* those originating in method or constructor declarations.
-Methods are excluded specifically to ensure generic classes and interfaces (such as `Array<T>`) continue to mostly relate covariantly.
+这一更严格的检查应用于*除*方法或构造函数声明以外的所有函数类型.
+方法被专门排除在外是为了确保带泛型的类和接口（如 `Array<T>`）总体上仍然保持协变.
 
-Consider the following example in which `Animal` is the supertype of `Dog` and `Cat`:
+考虑下面这个 `Animal` 是 `Dog` 和 `Cat` 的父类型的例子:
 
 ```ts
 declare let f1: (x: Animal) => void;
 declare let f2: (x: Dog) => void;
 declare let f3: (x: Cat) => void;
-f1 = f2;  // Error with --strictFunctionTypes
-f2 = f1;  // Ok
-f2 = f3;  // Error
+f1 = f2;  // 启用 --strictFunctionTypes 时错误
+f2 = f1;  // 正确
+f2 = f3;  // 错误
 ```
 
-The first assignment is permitted in default type checking mode, but flagged as an error in strict function types mode.
-Intuitively, the default mode permits the assignment because it is _possibly_ sound, whereas strict function types mode makes it an error because it isn't _provably_ sound.
-In either mode the third assignment is an error because it is _never_ sound.
+第一个赋值语句在默认的类型检查模式中是允许的, 但是在严格函数类型模式下会被标记错误.
+通俗地讲, 默认模式允许这么赋值, 因为它_可能是_合理的, 而严格函数类型模式将它标记为错误, 因为它不能_被证明_合理.
+任何一种模式中, 第三个赋值都是错误的, 因为它_永远不_合理.
 
-Another way to describe the example is that the type `(x: T) => void` is _bivariant_ (i.e. covariant _or_ contravariant) for `T` in default type checking mode, but _contravariant_ for `T` in strict function types mode.
+用另一种方式来描述这个例子则是, 默认类型检查模式中 `T` 在类型 `(x: T) => void` 是_双变的_ (也即协变_或_逆变), 但在严格函数类型模式中 `T` 是_逆变_的.
 
-##### Example
+##### 例子
 
 ```ts
 interface Comparer<T> {
@@ -43,18 +42,18 @@ interface Comparer<T> {
 declare let animalComparer: Comparer<Animal>;
 declare let dogComparer: Comparer<Dog>;
 
-animalComparer = dogComparer;  // Error
-dogComparer = animalComparer;  // Ok
+animalComparer = dogComparer;  // 错误
+dogComparer = animalComparer;  // 正确
 ```
 
-The first assignment is now an error. Effectively, `T` is contravariant in `Comparer<T>` because it is used only in function type parameter positions.
+现在第一个赋值是错误的. 更明确地说, `Comparer<T>` 中地 `T` 因为它仅在函数类型参数的位置被使用所以是逆变的.
 
-By the way, note that whereas some languages (e.g. C# and Scala) require variance annotations (`out`/`in` or `+`/`-`), variance emerges naturally from the actual use of a type parameter within a generic type due to TypeScript's structural type system.
+另外, 注意尽管有的语言 (比如 C# 和 Scala) 要求变型标注 (`out`/`in` 或 `+`/`-`), 而由于 TypeScript 的结构化类型系统, 它的变型是由泛型中的类型参数的实际使用自然得出的.
 
-##### Note:
+##### 注意:
 
-Under `--strictFunctionTypes` the first assignment is still permitted if `compare` was declared as a method.
-Effectively, `T` is bivariant in `Comparer<T>` because it is used only in method parameter positions.
+启用 `--strictFunctionTypes` 时, 如果 `compare` 被声明为方法, 则第一个赋值依然是被允许的.
+更明确的说, `Comparer<T>` 中的 `T` 因为它仅在方法参数的位置被使用所以是双变的.
 
 ```ts
 interface Comparer<T> {
@@ -64,11 +63,11 @@ interface Comparer<T> {
 declare let animalComparer: Comparer<Animal>;
 declare let dogComparer: Comparer<Dog>;
 
-animalComparer = dogComparer;  // Ok because of bivariance
-dogComparer = animalComparer;  // Ok
+animalComparer = dogComparer;  // 正确, 因为双变
+dogComparer = animalComparer;  // 正确
 ```
 
-TypeScript 2.6 also improves type inference involving contravariant positions:
+TypeScript 2.6 还改进了与逆变位置相关的类型推导:
 
 ```ts
 function combine<T>(...funcs: ((x: T) => void)[]): (x: T) => void {
@@ -83,17 +82,17 @@ function dogFunc(x: Dog) {}
 let combined = combine(animalFunc, dogFunc);  // (x: Dog) => void
 ```
 
-Above, all inferences for `T` originate in contravariant positions, and we therefore infer the *best common subtype* for `T`.
-This contrasts with inferences from covariant positions, where we infer the *best common supertype*.
+这上面所有 `T` 的推断都来自逆变的位置, 由此我们得出 `T` 的*最普遍子类型*.
+这与从协变位置推导出的结果恰恰相反, 从协变位置我们得出的是*最普遍超类型*.
 
-### Cache tagged template objects in modules
+### 缓存模块中的标签模板对象
 
-TypeScript 2.6 fixes the tagged string template emit to align better with the ECMAScript spec.
-As per the [ECMAScript spec](https://tc39.github.io/ecma262/#sec-gettemplateobject), every time a template tag is evaluated, the _same_ strings object should be passed as the first argument.
-Before TypeScript 2.6, the generated output was a new string.
-Though the string contents are the same, this emit affects frameworks that use the identity of the string for cache invalidation purposes, e.g. [Polymer](https://github.com/PolymerLabs/lit-html/issues/58).
+TypeScript 2.6 修复了标签字符串模板的输出, 以更好地遵循 ECMAScript 标准.
+根据 [ECMAScript 标准](https://tc39.github.io/ecma262/#sec-gettemplateobject), 每一次获取模板标签的值时, 应该将_同一个_模板字符串数组对象 (同一个 `TemplateStringArray`) 作为第一个参数传递.
+在 TypeScript 2.6 之前, 每一次生成的都是全新的模板对象.
+虽然字符串的内容时一样的, 这样的输出会影响通过识别字符串来实现缓存失效的库, 比如 [lit-html](https://github.com/PolymerLabs/lit-html/issues/58).
 
-##### Example
+##### 例子
 
 ```ts
 export function id(x: TemplateStringsArray) {
@@ -104,10 +103,10 @@ export function templateObjectFactory() {
     return id`hello world`;
 }
 
-let result = templateObjectFactory() === templateObjectFactory(); // true in TS 2.6
+let result = templateObjectFactory() === templateObjectFactory(); // TS 2.6 为 true
 ```
 
-Results in the following generated code:
+编译后的代码:
 
 ```js
 "use strict";
@@ -128,23 +127,23 @@ function templateObjectFactory() {
 var result = templateObjectFactory() === templateObjectFactory();
 ```
 
-> Note: This change brings a new emit helper, `__makeTemplateObject`;
-if you are using `--importHelpers` with [`tslib`](https://github.com/Microsoft/tslib), an updated to version 1.8 or later.
+> 注意: 这一改变引入了新的工具函数, `__makeTemplateObject`;
+如果你在搭配使用 `--importHelpers` 和 [`tslib`](https://github.com/Microsoft/tslib), 需要更新到 1.8 或更高版本.
 
-### Localized diagnostics on the command line
+### 本地化的命令行诊断消息
 
-TypeScript 2.6 npm package ships with localized versions of diagnostic messages for 13 languages.
-The localized messages are available when using `--locale` flag on the command line.
+TypeScript 2.6 npm 包加入了 13 种语言的诊断消息本地化版本.
+命令行中本地化消息会在使用 `--locale` 选项时显示.
 
-##### Example
+##### 例子
 
-Error messages in Russian:
+俄语显示的错误消息:
 
 ```sh
 c:\ts>tsc --v
-Version 2.6.0-dev.20171003
+Version 2.6.1
 
-c:\ts>tsc --locale rus --pretty c:\test\a.ts
+c:\ts>tsc --locale ru --pretty c:\test\a.ts
 
 ../test/a.ts(1,5): error TS2322: Тип ""string"" не может быть назначен для типа "number".
 
@@ -152,93 +151,89 @@ c:\ts>tsc --locale rus --pretty c:\test\a.ts
       ~
 ```
 
-And help in Japanese:
+中文显示的帮助信息:
 
 ```sh
 PS C:\ts> tsc --v
-Version 2.6.0-dev.20171003
+Version 2.6.1
 
-PS C:\ts> tsc --locale jpn
-バージョン 2.6.0-dev.20171003
-構文: tsc [オプション] [ファイル ...]
+PS C:\ts> tsc --locale ja-jp
+版本 2.6.1
+语法: tsc [选项] [文件 ...]
 
-例:  tsc hello.ts
+示例: tsc hello.ts
     tsc --outFile file.js file.ts
     tsc @args.txt
 
-オプション:
- -h, --help                                 このメッセージを表示します。
- --all                                      コンパイラ オプションをすべて表示します。
- -v, --version                              コンパイラのバージョンを表示します。
- --init                                     TypeScript プロジェクトを初期化して、tsconfig.json ファイルを作成します。
- -p ファイルまたはディレクトリ, --project ファイルまたはディレクトリ  構成ファイルか、'tsconfig.json' を含むフォルダーにパスが指定されたプロジェクトをコ
-ンパイルします。
- --pretty                                   色とコンテキストを使用してエラーとメッセージにスタイルを適用します (試験的)。
- -w, --watch                                入力ファイルを監視します。
- -t バージョン, --target バージョン                   ECMAScript のターゲット バージョンを指定します: 'ES3' (既定)、'ES5'、'ES2015'、'ES2016'、'ES2017'、'ES
-NEXT'。
- -m 種類, --module 種類                         モジュール コード生成を指定します: 'none'、'commonjs'、'amd'、'system'、'umd'、'es2015'、'ESNext'。
- --lib                                      コンパイルに含めるライブラリ ファイルを指定します:
-                                              'es5' 'es6' 'es2015' 'es7' 'es2016' 'es2017' 'esnext' 'dom' 'dom.iterable' 'webworker' 'scripthost' 'es201
-5.core' 'es2015.collection' 'es2015.generator' 'es2015.iterable' 'es2015.promise' 'es2015.proxy' 'es2015.reflect' 'es2015.symbol' 'es2015.symbol.wellkno
-wn' 'es2016.array.include' 'es2017.object' 'es2017.sharedmemory' 'es2017.string' 'es2017.intl' 'esnext.asynciterable'
- --allowJs                                  javascript ファイルのコンパイルを許可します。
- --jsx 種類                                   JSX コード生成を指定します: 'preserve'、'react-native'、'react'。
- -d, --declaration                          対応する '.d.ts' ファイルを生成します。
- --sourceMap                                対応する '.map' ファイルを生成します。
- --outFile ファイル                             出力を連結して 1 つのファイルを生成します。
- --outDir ディレクトリ                            ディレクトリへ出力構造をリダイレクトします。
- --removeComments                           コメントを出力しないでください。
- --noEmit                                   出力しないでください。
- --strict                                   strict 型チェックのオプションをすべて有効にします。
- --noImplicitAny                            暗黙的な 'any' 型を含む式と宣言に関するエラーを発生させます。
- --strictNullChecks                         厳格な null チェックを有効にします。
- --noImplicitThis                           暗黙的な 'any' 型を持つ 'this' 式でエラーが発生します。
- --alwaysStrict                             厳格モードで解析してソース ファイルごとに "use strict" を生成します。
- --noUnusedLocals                           使用されていないローカルに関するエラーを報告します。
- --noUnusedParameters                       使用されていないパラメーターに関するエラーを報告します。
- --noImplicitReturns                        関数の一部のコード パスが値を返さない場合にエラーを報告します。
- --noFallthroughCasesInSwitch               switch ステートメントに case のフォールスルーがある場合にエラーを報告します。
- --types                                    コンパイルに含む型宣言ファイル。
- @<ファイル>
+选项:
+ -h, --help                    打印此消息。
+ --all                         显示所有编译器选项。
+ -v, --version                 打印编译器的版本。
+ --init                        初始化 TypeScript 项目并创建 tsconfig.json 文件。
+ -p 文件或目录, --project 文件或目录     编译给定了其配置文件路径或带 "tsconfig.json" 的文件夹路径的项目。
+ --pretty                      使用颜色和上下文风格化错误和消息(实验)。
+ -w, --watch                   监视输入文件。
+ -t 版本, --target 版本            指定 ECMAScript 目标版本: "ES3"(默认)、"ES5"、"ES2015"、"ES2016"、"ES2017" 或 "ESNEXT"。
+ -m 种类, --module 种类            指定模块代码生成: "none"、"commonjs"、"amd"、"system"、"umd"、"es2015"或 "ESNext"。
+ --lib                         指定要在编译中包括的库文件:
+                                 'es5' 'es6' 'es2015' 'es7' 'es2016' 'es2017' 'esnext' 'dom' 'dom.iterable' 'webworker' 'scripthost' 'es2015.core' 'es2015.collection' 'es2015.generator' 'es2015.iterable' 'es2015.promise' 'es2015.proxy' 'es2015.reflect' 'es2015.symbol' 'es2015.symbol.wellknown' 'es2016.array.include' 'es2017.object' 'es2017.sharedmemory' 'es2017.string' 'es2017.intl' 'esnext.asynciterable'
+ --allowJs                     允许编译 JavaScript 文件。
+ --jsx 种类                      指定 JSX 代码生成: "preserve"、"react-native" 或 "react"。 -d, --declaration             生成相应的 ".d.ts" 文件。
+ --sourceMap                   生成相应的 ".map" 文件。
+ --outFile 文件                  连接输出并将其发出到单个文件。
+ --outDir 目录                   将输出结构重定向到目录。
+ --removeComments              请勿将注释发出到输出。
+ --noEmit                      请勿发出输出。
+ --strict                      启用所有严格类型检查选项。
+ --noImplicitAny               对具有隐式 "any" 类型的表达式和声明引发错误。
+ --strictNullChecks            启用严格的 NULL 检查。
+ --strictFunctionTypes         对函数类型启用严格检查。
+ --noImplicitThis              在带隐式“any" 类型的 "this" 表达式上引发错误。
+ --alwaysStrict                以严格模式进行分析，并为每个源文件发出 "use strict" 指令。
+ --noUnusedLocals              报告未使用的局部变量上的错误。
+ --noUnusedParameters          报告未使用的参数上的错误。
+ --noImplicitReturns           在函数中的所有代码路径并非都返回值时报告错误。
+ --noFallthroughCasesInSwitch  报告 switch 语句中遇到 fallthrough 情况的错误。
+ --types                       要包含在编译中类型声明文件。
+ @<文件>                         从文件插入命令行选项和文件。
 ```
 
-### Suppress errors in .ts files using '// @ts-ignore' comments
+### 通过 '// @ts-ignore' 注释隐藏 .ts 文件中的错误
 
-TypeScript 2.6 support suppressing errors in .js files using `// @ts-ignore` comments placed above the offending lines.
+TypeScript 2.6 支持在 .ts 文件中通过在报错一行上方使用 `// @ts-ignore` 来忽略错误.
 
-##### Example
+##### 例子
 
 ```ts
 if (false) {
-    // @ts-ignore: Unreachable code error
+    // @ts-ignore: 无法被执行的代码的错误
     console.log("hello");
 }
 ```
 
-A `// @ts-ignore` comment suppresses all errors that originate on the following line.
-It is recommended practice to have the remainder of the comment following `@ts-ignore` explain which error is being suppressed.
+`// @ts-ignore` 注释会忽略下一行中产生的所有错误.
+建议实践中在 `@ts-ignore` 之后添加相关提示, 解释忽略了什么错误.
 
-Please note that this comment only suppresses the error reporting, and we recommend you use this comments _very sparingly_.
+请注意, 这个注释仅会隐藏报错, 并且我们建议你_极少_使用这一注释.
 
-### Faster `tsc --watch`
+### 更快的 `tsc --watch`
 
-TypeScript 2.6 brings a faster `--watch` implementation.
-The new version optimizes code generation and checking for code bases using ES modules.
-Changes detected in a module file will result in _only_ regenerating the changed module, and files that depend on it, instead of the whole project.
-Projects with large number of files should reap the most benefit from this change.
+TypeScript 2.6 带来了更快的 `--watch` 实现.
+新版本优化了使用 ES 模块的代码的生成和检查.
+在一个模块文件中检测到的改变_只_会使改变的模块, 以及依赖它的文件被重新生成, 而不再是整个项目.
+有大量文件的项目应该从这一改变中获益最多.
 
-The new implementation also brings performance enhancements to watching in tsserver.
-The watcher logic has been completely rewritten to respond faster to change events.
+这一新的实现也为 tsserver 中的监听带来了性能提升.
+监听逻辑被完全重写以更快响应改变事件.
 
-### Write-only references now flagged as unused
+### 只写的引用现在会被标记未使用
 
-TypeScript 2.6 adds revised implementation  the `--noUnusedLocals` and `--noUnusedParameters` [compiler options](https://www.typescriptlang.org/docs/handbook/compiler-options.html).
-Declarations are only written to but never read from are now flagged as unused.
+TypeScript 2.6 加入了修正的 `--noUnusedLocals` 和 `--noUnusedParameters` [编译选项](https://www.typescriptlang.org/docs/handbook/compiler-options.html)实现.
+只被写但从没有被读的声明现在会被标记未使用.
 
-##### Example
+##### 例子
 
-Bellow both `n` and `m` will be marked as unused, because their values are never *read*. Previously TypeScript would only check whether their values were *referenced*.
+下面 `n` 和 `m` 都会被标记为未使用, 因为它们的值从未被_读取_. 之前 TypeScript 只会检查它们的值是否被*引用*.
 
 ```ts
 function f(n: number) {
@@ -253,22 +248,21 @@ class C {
 }
 ```
 
-Also functions that are only called within their own bodies are considered unused.
+另外仅被自己内部调用的函数也会被认为时未使用的.
 
-##### Example
+##### 例子
 
 ```ts
 function f() {
-    f(); // Error: 'f' is declared but its value is never read
+    f(); // 错误: 'f' 被声明, 但它的值从未被使用
 }
 ```
 
 ## TypeScript 2.5
 
-### Optional `catch` clause variables
 ### 可选的 `catch` 语句变量
 
-多谢 [@tinganho](https://github.com/tinganho) 做的工作, TypeScript 2.5 实现了一个新的 ECMAScript 特性, 允许用户省略 `catch` 语句中的变量.
+得益于 [@tinganho](https://github.com/tinganho) 做的工作, TypeScript 2.5 实现了一个新的 ECMAScript 特性, 允许用户省略 `catch` 语句中的变量.
 举例来说, 当使用 `JSON.parse` 时, 你可能需要将对应的函数调用放在 `try`/`catch` 中, 但是最后可能并不会用到输入有误时会抛出的 `SyntaxError` (语法错误).
 
 ```ts
@@ -298,17 +292,15 @@ var x = /** @type {SomeType} */ (AnyParenthesizedExpression);
 如果一个文件所在的包的 `package.json` 包含了与之前读取的包相同的 `name` 和 `version`, 那么 TypeScript 会将它重定向到最顶层的包.
 这可以解决当两个包可能会包含相同的类声明, 但因为包含 `private` 成员导致他们在结构上不兼容的问题.
 
-作为额外收益, 这也可以减少内存使用,
-As a nice bonus, this can also reduce the memory and runtime footprint of the compiler and language service by avoiding loading `.d.ts` files from duplicate packages.
+作为额外收获, 这也可以通过避免从重复的包中加载 `.d.ts` 文件减少内存使用和编译器及语言服务的运行时计算.
 
-### The `--preserveSymlinks` compiler flag
+### `--preserveSymlinks` (保留符号链接) 编译器选项
 
-TypeScript 2.5 brings the `preserveSymlinks` flag, which parallels the behavior of [the `--preserve-symlinks` flag in Node.js](https://nodejs.org/api/cli.html#cli_preserve_symlinks).
-This flag also exhibits the opposite behavior to Webpack's `resolve.symlinks` option (i.e. setting TypeScript's `preserveSymlinks` to `true` parallels setting Webpack's `resolve.symlinks` to `false`, and vice-versa).
+TypeScript 2.5 带来了 `preserveSymlinks` 选项, 它对应了 [Node.js 中 `--preserve-symlinks` 选项](https://nodejs.org/api/cli.html#cli_preserve_symlinks)的行为.
+这一选项也会带来和 Webpack 的 `resolve.symlinks` 选项相反的行为 (也就是说, 将 TypeScript 的 `preserveSymlinks` 选项设置为 `true` 对应了将 Webpack 的 `resolve.symlinks` 选项设为 `fakse`, 反之亦然).
 
-In this mode, references to modules and packages (e.g. `import`s and `/// <reference type="..." />` directives) are all resolved relative to the location of the symbolic link file, rather than relative to the path that the symbolic link resolves to.
-For a more concrete example, we'll defer to [the documentation on the Node.js website](https://nodejs.org/api/cli.html#cli_preserve_symlinks).
-
+在这一模式中, 对于模块和包的引用 (比如 `import` 语句和 `/// <reference type="..." />` 指令) 都会以相对符号链接文件的位置被解析, 而不是相对于符号链接解析到的路径.
+更具体的例子, 可以参考 [Node.js 网站的文档](https://nodejs.org/api/cli.html#cli_preserve_symlinks).
 
 ## TypeScript 2.4
 
@@ -443,9 +435,9 @@ TypeScript 2.4 引入了 "弱类型" 的概念.
 
 ```ts
 interface Options {
-    data?: string,
-    timeout?: number,
-    maxRetries?: number,
+    data?: string;
+    timeout?: number;
+    maxRetries?: number;
 }
 ```
 
