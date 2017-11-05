@@ -10,7 +10,7 @@ TypeScript 2.6 引入了新的类型检查选项, `--strictFunctionTypes`.
 `--strictFunctionTypes` 选项是 `--strict` 系列选项之一, 也就是说 `--strict` 模式下它默认是启用的.
 你可以通过在命令行或 tsconfig.json 中设置 `--strictFunctionTypes false` 来单独禁用它.
 
-`--strictFunctionTypes` 启用时, 函数类型参数的检查是_逆变_（contravariantly）而非_双变_（bivariantly）的. 关于变型 (variance) 对与函数类型意义的相关背景, 请查看 [协变（covariance）和逆变（contravariance）是什么?](https://www.stephanboyer.com/post/132/what-are-covariance-and-contravariance).
+`--strictFunctionTypes` 启用时, 函数类型参数的检查是_逆变_（contravariantly）而非_双变_（bivariantly）的. 关于变型 (variance) 对与函数类型意义的相关背景, 请查看[协变（covariance）和逆变（contravariance）是什么?](https://www.stephanboyer.com/post/132/what-are-covariance-and-contravariance).
 
 这一更严格的检查应用于*除*方法或构造函数声明以外的所有函数类型.
 方法被专门排除在外是为了确保带泛型的类和接口（如 `Array<T>`）总体上仍然保持协变.
@@ -46,14 +46,14 @@ animalComparer = dogComparer;  // 错误
 dogComparer = animalComparer;  // 正确
 ```
 
-现在第一个赋值是错误的. 更明确地说, `Comparer<T>` 中地 `T` 因为它仅在函数类型参数的位置被使用所以是逆变的.
+现在第一个赋值是错误的. 更明确地说, `Comparer<T>` 中的 `T` 因为仅在函数类型参数的位置被使用, 是逆变的.
 
-另外, 注意尽管有的语言 (比如 C# 和 Scala) 要求变型标注 (`out`/`in` 或 `+`/`-`), 而由于 TypeScript 的结构化类型系统, 它的变型是由泛型中的类型参数的实际使用自然得出的.
+另外, 注意尽管有的语言 (比如 C# 和 Scala) 要求变型标注 (variance annotations) (`out`/`in` 或 `+`/`-`), 而由于 TypeScript 的结构化类型系统, 它的变型是由泛型中的类型参数的实际使用自然得出的.
 
 ##### 注意:
 
 启用 `--strictFunctionTypes` 时, 如果 `compare` 被声明为方法, 则第一个赋值依然是被允许的.
-更明确的说, `Comparer<T>` 中的 `T` 因为它仅在方法参数的位置被使用所以是双变的.
+更明确的说, `Comparer<T>` 中的 `T` 因为仅在方法参数的位置被使用所以是双变的.
 
 ```ts
 interface Comparer<T> {
@@ -90,7 +90,7 @@ let combined = combine(animalFunc, dogFunc);  // (x: Dog) => void
 TypeScript 2.6 修复了标签字符串模板的输出, 以更好地遵循 ECMAScript 标准.
 根据 [ECMAScript 标准](https://tc39.github.io/ecma262/#sec-gettemplateobject), 每一次获取模板标签的值时, 应该将_同一个_模板字符串数组对象 (同一个 `TemplateStringArray`) 作为第一个参数传递.
 在 TypeScript 2.6 之前, 每一次生成的都是全新的模板对象.
-虽然字符串的内容时一样的, 这样的输出会影响通过识别字符串来实现缓存失效的库, 比如 [lit-html](https://github.com/PolymerLabs/lit-html/issues/58).
+虽然字符串的内容是一样的, 这样的输出会影响通过识别字符串来实现缓存失效的库, 比如 [lit-html](https://github.com/PolymerLabs/lit-html/issues/58).
 
 ##### 例子
 
@@ -233,7 +233,7 @@ TypeScript 2.6 加入了修正的 `--noUnusedLocals` 和 `--noUnusedParameters` 
 
 ##### 例子
 
-下面 `n` 和 `m` 都会被标记为未使用, 因为它们的值从未被_读取_. 之前 TypeScript 只会检查它们的值是否被*引用*.
+下面 `n` 和 `m` 都会被标记为未使用, 因为它们的值从未被*读取*. 之前 TypeScript 只会检查它们的值是否被*引用*.
 
 ```ts
 function f(n: number) {
@@ -248,7 +248,7 @@ class C {
 }
 ```
 
-另外仅被自己内部调用的函数也会被认为时未使用的.
+另外仅被自己内部调用的函数也会被认为是未使用的.
 
 ##### 例子
 
@@ -290,14 +290,14 @@ var x = /** @type {SomeType} */ (AnyParenthesizedExpression);
 
 在 TypeScript 2.5 中使用 `Node` 模块解析策略进行导入时, 编译器现在会检查文件是否来自 "相同" 的包.
 如果一个文件所在的包的 `package.json` 包含了与之前读取的包相同的 `name` 和 `version`, 那么 TypeScript 会将它重定向到最顶层的包.
-这可以解决当两个包可能会包含相同的类声明, 但因为包含 `private` 成员导致他们在结构上不兼容的问题.
+这可以解决两个包可能会包含相同的类声明, 但因为包含 `private` 成员导致他们在结构上不兼容的问题.
 
-作为额外收获, 这也可以通过避免从重复的包中加载 `.d.ts` 文件减少内存使用和编译器及语言服务的运行时计算.
+这也带来一个额外的好处, 可以通过避免从重复的包中加载 `.d.ts` 文件减少内存使用和编译器及语言服务的运行时计算.
 
 ### `--preserveSymlinks` (保留符号链接) 编译器选项
 
 TypeScript 2.5 带来了 `preserveSymlinks` 选项, 它对应了 [Node.js 中 `--preserve-symlinks` 选项](https://nodejs.org/api/cli.html#cli_preserve_symlinks)的行为.
-这一选项也会带来和 Webpack 的 `resolve.symlinks` 选项相反的行为 (也就是说, 将 TypeScript 的 `preserveSymlinks` 选项设置为 `true` 对应了将 Webpack 的 `resolve.symlinks` 选项设为 `fakse`, 反之亦然).
+这一选项也会带来和 Webpack 的 `resolve.symlinks` 选项相反的行为 (也就是说, 将 TypeScript 的 `preserveSymlinks` 选项设置为 `true` 对应了将 Webpack 的 `resolve.symlinks` 选项设为 `false`, 反之亦然).
 
 在这一模式中, 对于模块和包的引用 (比如 `import` 语句和 `/// <reference type="..." />` 指令) 都会以相对符号链接文件的位置被解析, 而不是相对于符号链接解析到的路径.
 更具体的例子, 可以参考 [Node.js 网站的文档](https://nodejs.org/api/cli.html#cli_preserve_symlinks).
