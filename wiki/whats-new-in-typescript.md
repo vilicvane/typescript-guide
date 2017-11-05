@@ -10,7 +10,7 @@ TypeScript 2.6 引入了新的类型检查选项, `--strictFunctionTypes`.
 `--strictFunctionTypes` 选项是 `--strict` 系列选项之一, 也就是说 `--strict` 模式下它默认是启用的.
 你可以通过在命令行或 tsconfig.json 中设置 `--strictFunctionTypes false` 来单独禁用它.
 
-`--strictFunctionTypes` 启用时, 函数类型参数的检查是_逆变_（contravariantly）而非_双变_（bivariantly）的. 关于变型 (variance) 对与函数类型意义的相关背景, 请查看[协变（covariance）和逆变（contravariance）是什么?](https://www.stephanboyer.com/post/132/what-are-covariance-and-contravariance).
+`--strictFunctionTypes` 启用时, 函数类型参数的检查是*逆变*（contravariantly）而非*双变*（bivariantly）的. 关于变型 (variance) 对与函数类型意义的相关背景, 请查看[协变（covariance）和逆变（contravariance）是什么?](https://www.stephanboyer.com/post/132/what-are-covariance-and-contravariance).
 
 这一更严格的检查应用于*除*方法或构造函数声明以外的所有函数类型.
 方法被专门排除在外是为了确保带泛型的类和接口（如 `Array<T>`）总体上仍然保持协变.
@@ -27,10 +27,10 @@ f2 = f3;  // 错误
 ```
 
 第一个赋值语句在默认的类型检查模式中是允许的, 但是在严格函数类型模式下会被标记错误.
-通俗地讲, 默认模式允许这么赋值, 因为它_可能是_合理的, 而严格函数类型模式将它标记为错误, 因为它不能_被证明_合理.
-任何一种模式中, 第三个赋值都是错误的, 因为它_永远不_合理.
+通俗地讲, 默认模式允许这么赋值, 因为它*可能是*合理的, 而严格函数类型模式将它标记为错误, 因为它不能*被证明*合理.
+任何一种模式中, 第三个赋值都是错误的, 因为它*永远不*合理.
 
-用另一种方式来描述这个例子则是, 默认类型检查模式中 `T` 在类型 `(x: T) => void` 是_双变的_ (也即协变_或_逆变), 但在严格函数类型模式中 `T` 是_逆变_的.
+用另一种方式来描述这个例子则是, 默认类型检查模式中 `T` 在类型 `(x: T) => void` 是*双变的* (也即协变*或*逆变), 但在严格函数类型模式中 `T` 是*逆变*的.
 
 ##### 例子
 
@@ -88,7 +88,7 @@ let combined = combine(animalFunc, dogFunc);  // (x: Dog) => void
 ### 缓存模块中的标签模板对象
 
 TypeScript 2.6 修复了标签字符串模板的输出, 以更好地遵循 ECMAScript 标准.
-根据 [ECMAScript 标准](https://tc39.github.io/ecma262/#sec-gettemplateobject), 每一次获取模板标签的值时, 应该将_同一个_模板字符串数组对象 (同一个 `TemplateStringArray`) 作为第一个参数传递.
+根据 [ECMAScript 标准](https://tc39.github.io/ecma262/#sec-gettemplateobject), 每一次获取模板标签的值时, 应该将*同一个*模板字符串数组对象 (同一个 `TemplateStringArray`) 作为第一个参数传递.
 在 TypeScript 2.6 之前, 每一次生成的都是全新的模板对象.
 虽然字符串的内容是一样的, 这样的输出会影响通过识别字符串来实现缓存失效的库, 比如 [lit-html](https://github.com/PolymerLabs/lit-html/issues/58).
 
@@ -214,13 +214,13 @@ if (false) {
 `// @ts-ignore` 注释会忽略下一行中产生的所有错误.
 建议实践中在 `@ts-ignore` 之后添加相关提示, 解释忽略了什么错误.
 
-请注意, 这个注释仅会隐藏报错, 并且我们建议你_极少_使用这一注释.
+请注意, 这个注释仅会隐藏报错, 并且我们建议你*极少*使用这一注释.
 
 ### 更快的 `tsc --watch`
 
 TypeScript 2.6 带来了更快的 `--watch` 实现.
 新版本优化了使用 ES 模块的代码的生成和检查.
-在一个模块文件中检测到的改变_只_会使改变的模块, 以及依赖它的文件被重新生成, 而不再是整个项目.
+在一个模块文件中检测到的改变*只*会使改变的模块, 以及依赖它的文件被重新生成, 而不再是整个项目.
 有大量文件的项目应该从这一改变中获益最多.
 
 这一新的实现也为 tsserver 中的监听带来了性能提升.
